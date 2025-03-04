@@ -1,6 +1,6 @@
 # cm3035-elearning-app
 
-This will be an app built with Django that serves an elearning application.
+This will be a web app that serves an elearning application. The backend will be a CRUD API built with Django and serve data to a React frontend.
 
 ## Features
 
@@ -85,7 +85,7 @@ server:
 ```bash
 python manage.py makemigrations
 python manage.py migrate
-python manage.py runserver 0.0.0.0:8000 # To listen on port 8000 on the LAN
+python manage.py runserver 0:8000 # To listen on port 8000 on the LAN
 ```
 
 ## Acknowledgements
