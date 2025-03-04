@@ -43,11 +43,13 @@ This will be an app built with Django that serves an elearning application.
 
 ### Dependencies
 
-This project was developed on:
+This project was developed with:
 
 - OS: Linux
 - Python 3.12.9
 - Django 5.1.6
+- django-cors-headers 4.7.0
+- djangorestframework 3.15.2
 
 ## Setup
 
