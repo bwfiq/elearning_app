@@ -40,3 +40,13 @@ This will be an app built with Django that serves an elearning application.
   - unit testing for both client and server side code
 - The app will be Dockerised.
 - This repository will make use of GitHub Actions for CI/CD.
+
+## Setup
+
+1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
+2. Create a virtual environment: `python3 -m venv venv` (or
+   `python -m venv venv` if python3 is not default)
+3. Activate the virtual environment:
+   - Linux/macOS: `source venv/bin/activate`
+   - Windows: `venv\Scripts\activate`
+4. Install dependencies: `pip install -r requirements.txt`
