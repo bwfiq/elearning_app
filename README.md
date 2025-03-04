@@ -87,3 +87,8 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver 0.0.0.0:8000 # To listen on port 8000 on the LAN
 ```
+
+## Acknowledgements
+
+- https://blog.logrocket.com/using-react-django-create-app-tutorial/ for
+  providing much of the startup code for this project
