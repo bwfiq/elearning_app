@@ -41,9 +41,19 @@ This will be an app built with Django that serves an elearning application.
 - The app will be Dockerised.
 - This repository will make use of GitHub Actions for CI/CD.
 
+### Dependencies
+
+This project was developed on:
+
+- OS: Linux
+- Python 3.12.9
+- Django 5.1.6
+
 ## Setup
 
-### Using Python venv
+### Development Environment
+
+#### Using Python venv
 
 1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
 2. Create a virtual environment: `python3 -m venv venv` (or
@@ -53,8 +63,19 @@ This will be an app built with Django that serves an elearning application.
    - Windows: `venv\Scripts\activate`
 4. Install dependencies: `pip install -r requirements.txt`
 
-### Using nix-shell
+#### Using nix-shell
 
 1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
 2. Run the development shell with
    `nix-shell --extra-experimental-features "nix-command flakes"`
+
+### Project Setup
+
+Run the following commands to set up the database and run the development
+server:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000 # To listen on port 8000 on the LAN
+```
