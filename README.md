@@ -43,6 +43,8 @@ This will be an app built with Django that serves an elearning application.
 
 ## Setup
 
+### Using Python venv
+
 1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
 2. Create a virtual environment: `python3 -m venv venv` (or
    `python -m venv venv` if python3 is not default)
@@ -50,3 +52,9 @@ This will be an app built with Django that serves an elearning application.
    - Linux/macOS: `source venv/bin/activate`
    - Windows: `venv\Scripts\activate`
 4. Install dependencies: `pip install -r requirements.txt`
+
+### Using nix-shell
+
+1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
+2. Run the development shell with
+   `nix-shell --extra-experimental-features "nix-command flakes"`
