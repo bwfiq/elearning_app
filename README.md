@@ -71,6 +71,11 @@ This project was developed with:
 2. Run the development shell with
    `nix-shell --extra-experimental-features "nix-command flakes"`
 
+#### Using direnv
+
+1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
+2. Run the command `direnv allow .` to enable loading the .envrc.
+
 ### Project Setup
 
 Run the following commands to set up the database and run the development
