@@ -75,6 +75,7 @@ This project was developed with:
 
 1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
 2. Run the command `direnv allow .` to enable loading the .envrc.
+3. All dependencies will be set up when entering the project directory.
 
 ### Project Setup
 
