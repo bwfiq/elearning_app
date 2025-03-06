@@ -82,10 +82,16 @@ This project was developed with:
 Run the following commands to set up the database and run the development
 server:
 
-```bash
+```sh
+# Running the backend
+cd backend
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver 0:8000 # To listen on port 8000 on the LAN
+
+# Running the frontend
+cd frontend
+npm start
 ```
 
 ## Acknowledgements
