@@ -21,6 +21,6 @@ from users import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    re_path(r"^api/users/$", views.users_list),  # Handle POST and GET
-    re_path(r"^api/users/([0-9])$", views.users_detail),  # Handle DELETE and PUT
+    re_path(r"^api/users/$", views.users_list, name='users_list'),
+    re_path(r"^api/users/([0-9]+)$", views.users_detail, name='users_detail'),
 ]
