@@ -1,0 +1,5 @@
+.envrc
+
+frontend/node_modules
+frontend/build
+backend/db.sqlite3
