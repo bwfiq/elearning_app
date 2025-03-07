@@ -1,15 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-
-class User(models.Model):
-    username = models.CharField("Username", max_length=240)
-    fullName = models.CharField("Full Name", max_length=240)
-    email = models.EmailField()
-    registrationDate = models.DateField("Registration Date", auto_now_add=True)
-    # TODO: Add following fields:
-    # isTeacher
-    # profilePicture
-    # password
+class User(AbstractUser):
+    full_name = models.CharField("Full Name", max_length=240, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    is_teacher = models.BooleanField(default=False)
+    registration_date = models.DateField("Registration Date", auto_now_add=True)
 
     def __str__(self):
         return self.username
