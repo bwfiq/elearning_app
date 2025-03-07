@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import UserHomePage from './UserHomePage';
 
 interface User {
   pk: number;
   username: string;
-  fullName: string;
+  full_name: string;
   email: string;
-  registrationDate: string;
+  registration_date: string;
 }
 
 
@@ -36,12 +38,23 @@ function App() {
   }
 
   return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<UserList users={users} />} />
+        <Route path="/:username" element={<UserHomePage />} />
+      </Routes>
+    </Router>
+  );
+}
+
+function UserList({ users }: { users: User[] }) {
+  return (
     <div className="App">
       <h1>User List</h1>
       <ul>
         {users.map(user => (
           <li key={user.pk}>
-            {user.username} ({user.fullName}) - {user.email}
+            <a href={`/${user.username}`}>{user.username}</a> ({user.full_name}) - {user.email}
           </li>
         ))}
       </ul>
