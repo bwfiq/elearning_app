@@ -49,10 +49,7 @@ The backend provides a REST API for managing users, courses, and course material
 
 *   `/api/users/`: User list, creation, details, update, deletion.
 *   `/api/register/`: User registration.
-*   `/api/login/`: User authentication.
-*   `/api/logout/`: Token invalidation.
-*   `/api/users/{user_id}/home/`: User home page data.
-*   `/api/users/{user_id}/profile/`: User profile information.
+*   `/api/users/{user_id}/`: User data and home page data.
 *   `/api/search/users/?q={query}`: User search.
 
 **Courses App:**
