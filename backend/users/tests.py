@@ -1,8 +1,10 @@
 from django.test import TestCase
-from users.models import User
+from users.models import User, StatusUpdate
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from django.urls import reverse
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserModelTests(TestCase):
     def test_user_fields(self):
@@ -46,3 +48,34 @@ class UserAPIViewTest(TestCase):
         self.assertEqual(response.status_code, 404)  # User not found should return 404
         self.assertEqual(response.data, []) # Returns an empty list
 
+class StatusUpdateAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpassword', full_name='Test User', email='test@example.com')
+        self.token = self.get_token_for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+
+    def get_token_for_user(self, user):
+        refresh = RefreshToken.for_user(user)
+        return str(refresh.access_token)
+
+    def test_create_status_update(self):
+        url = reverse('user_status_updates', kwargs={'user_id': self.user.pk})
+        data = {'text': 'This is a test status update.'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(StatusUpdate.objects.count(), 1)
+        self.assertEqual(StatusUpdate.objects.first().text, 'This is a test status update.')
+        self.assertEqual(StatusUpdate.objects.first().user, self.user)
+
+    def test_get_status_updates(self):
+        # Create some status updates for the user
+        StatusUpdate.objects.create(user=self.user, text='First update')
+        StatusUpdate.objects.create(user=self.user, text='Second update')
+
+        url = reverse('user_status_updates', kwargs={'user_id': self.user.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['text'], 'Second update')  # Newest first
+        self.assertEqual(response.data[1]['text'], 'First update')

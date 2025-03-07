@@ -30,4 +30,5 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/register/', views.register_user, name='register_user'),
+    path('api/users/<int:user_id>/status_updates/', views.user_status_updates, name='user_status_updates'),
 ]

@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from .models import User
+from .models import User, StatusUpdate
 from .serializers import *
 
 
@@ -67,3 +67,23 @@ def users_detail(request, pk):
     elif request.method == "DELETE":
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def user_status_updates(request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        status_updates = user.status_updates.all().order_by('-timestamp')  # Newest first
+        serializer = StatusUpdateSerializer(status_updates, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = StatusUpdateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)  # Automatically associate with the user
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

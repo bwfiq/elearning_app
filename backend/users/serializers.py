@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, StatusUpdate
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,3 +16,9 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+class StatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatusUpdate
+        fields = ('id', 'user', 'text', 'timestamp')
+        read_only_fields = ('id', 'user', 'timestamp')
