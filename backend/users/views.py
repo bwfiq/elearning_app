@@ -23,9 +23,18 @@ def register_user(request):
 @permission_classes([AllowAny])
 def users_list(request):
     if request.method == "GET":
-        data = User.objects.all()
-        serializer = UserSerializer(data, context={"request": request}, many=True)
-        return Response(serializer.data)
+        username = request.query_params.get('username', None)
+        if username:
+            try:
+                user = User.objects.get(username=username)
+                serializer = UserSerializer(user, context={"request": request})
+                return Response([serializer.data])  # Wrap in a list for consistency
+            except User.DoesNotExist:
+                return Response([], status=status.HTTP_404_NOT_FOUND)  # Return an empty list if user not found
+        else:
+            data = User.objects.all()
+            serializer = UserSerializer(data, context={"request": request}, many=True)
+            return Response(serializer.data)
 
     elif request.method == "POST":
         serializer = UserSerializer(data=request.data)
