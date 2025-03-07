@@ -1,7 +1,6 @@
-// frontend/src/UserHomePage.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import useAxios from './useAxios';
 
 interface User {
     pk: number;
@@ -17,12 +16,12 @@ function UserHomePage() {
     const { username } = useParams<{ username: string }>();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const axiosInstance = useAxios();
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const response = await axios.get<User>(`${apiUrl}/api/users/?username=${username}`);
+                const response = await axiosInstance.get<User>(`/api/users/?username=${username}`);
                 if (Array.isArray(response.data) && response.data.length > 0) {
                     setUser(response.data[0]);
                 } else {
@@ -37,7 +36,7 @@ function UserHomePage() {
         };
 
         fetchUser();
-    }, [username, apiUrl]);
+    }, [username, axiosInstance]);
 
     if (loading) {
         return <div>Loading user data...</div>;
@@ -56,7 +55,7 @@ function UserHomePage() {
             <p><strong>Registration Date:</strong> {user.registration_date}</p>
             <p><strong>Is Teacher:</strong> {user.is_teacher ? 'Yes' : 'No'}</p>
             {user.profile_picture && (
-                <img src={`${apiUrl}${user.profile_picture}`} alt="Profile" style={{ maxWidth: '200px' }} />
+                <img src={`${axiosInstance.defaults.baseURL}${user.profile_picture}`} alt="Profile" style={{ maxWidth: '200px' }} />
             )}
         </div>
     );
