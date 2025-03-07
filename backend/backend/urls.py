@@ -29,4 +29,5 @@ urlpatterns = [
     re_path(r"^api/users/([0-9]+)$", views.users_detail, name='users_detail'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/register/', views.register_user, name='register_user'),
 ]

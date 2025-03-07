@@ -9,6 +9,16 @@ from .models import User
 from .serializers import *
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    if request.method == 'POST':
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def users_list(request):
@@ -29,7 +39,6 @@ def users_list(request):
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
 def users_detail(request, pk):
-    print("Request Headers:", request.headers)
     try:
         user = User.objects.get(pk=pk)
     except User.DoesNotExist:
