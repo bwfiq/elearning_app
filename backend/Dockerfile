@@ -1,4 +1,3 @@
-# backend/Dockerfile
 FROM python:3.12
 
 WORKDIR /app
@@ -6,6 +5,9 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
+# Debugging step: list files in /app (formerly /backend)
+RUN ls -la /app
 
 # Install dependencies
 COPY backend/requirements.txt /app/
