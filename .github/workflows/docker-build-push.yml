@@ -34,7 +34,7 @@ jobs:
           docker push $REGISTRY/$IMAGE_NAME/elearning-backend:$IMAGE_TAG
 
       - name: Build and Push Frontend Docker Image
-        working-directory: ./
+        working-directory: ./frontend
         run: |
-          docker build -t $REGISTRY/$IMAGE_NAME/elearning-frontend:$IMAGE_TAG ./frontend
+          docker build -t $REGISTRY/$IMAGE_NAME/elearning-frontend:$IMAGE_TAG ./
           docker push $REGISTRY/$IMAGE_NAME/elearning-frontend:$IMAGE_TAG
