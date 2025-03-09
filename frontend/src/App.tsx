@@ -7,6 +7,7 @@ import UserHomePage from './UserHomePage';
 import Login from './Login';
 import Register from './Register'; // Import the Register component
 import CoursePage from './CoursePage'; // Import the CoursePage component
+import Navbar from './Navbar'; // Import the Navbar component
 
 interface User {
     pk: number;
@@ -91,19 +92,7 @@ function App() {
 
     return (
         <div className="App">
-            <header>
-                <h1>E-Learning App</h1>
-                {isLoggedIn ? (
-                    <div>
-                        <button onClick={logout}>Logout</button>
-                    </div>
-                ) : (
-                    <div>
-                         <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
-                    </div>
-
-                )}
-            </header>
+            <Navbar isLoggedIn={isLoggedIn} logout={logout} />
             <div className="content">
                 <Routes>
                     <Route path="/" element={isLoggedIn ? <HomePage users={users} courses={courses} /> : <div>Please login to see the user and course lists.</div>} />
@@ -111,6 +100,8 @@ function App() {
                     <Route path="/register" element={<Register />} /> {/* Add the Register route */}
                     <Route path="/:username" element={<UserHomePage />} />
                     <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
+                    <Route path="/courses" element={isLoggedIn ? <CourseList courses={courses} /> : <div>Please login to see the course list.</div>} />
+                    <Route path="/users" element={isLoggedIn ? <UserList users={users} /> : <div>Please login to see the user list.</div>} />
                 </Routes>
             </div>
         </div>
@@ -140,6 +131,36 @@ function HomePage({ users, courses }: { users: User[]; courses: Course[] }) {
                     ))}
                 </ul>
             </div>
+        </div>
+    );
+}
+
+function CourseList({ courses }: { courses: Course[] }) {
+    return (
+        <div className="course-list">
+            <h2>Courses</h2>
+            <ul>
+                {courses.map(course => (
+                    <li key={course.id}>
+                        <Link to={`/courses/${course.id}`}>{course.name}</Link>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+function UserList({ users }: { users: User[] }) {
+    return (
+        <div className="user-list">
+            <h2>Users</h2>
+            <ul>
+                {users.map(user => (
+                    <li key={user.pk}>
+                        <Link to={`/${user.username}`}>{user.username}</Link> ({user.full_name}) - {user.email}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }
