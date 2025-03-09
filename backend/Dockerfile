@@ -23,7 +23,7 @@ COPY . .
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
-# Expose port 8000
+# Expose port 8000 and 8001
 EXPOSE 8000
 EXPOSE 8001
 
