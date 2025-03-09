@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react
 import UserHomePage from './UserHomePage';
 import Login from './Login';
 import Register from './Register'; // Import the Register component
+import CoursePage from './CoursePage'; // Import the CoursePage component
 
 interface User {
     pk: number;
@@ -85,6 +86,7 @@ function App() {
                 <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
                 <Route path="/register" element={<Register />} /> {/* Add the Register route */}
                 <Route path="/:username" element={<UserHomePage />} />
+                <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
             </Routes>
         </div>
     );

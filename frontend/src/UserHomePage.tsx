@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import useAxios from './useAxios';
 
 interface User {
@@ -250,7 +250,7 @@ function UserHomePage() {
             <ul>
                 {courses.map(course => (
                     <li key={course.id}>
-                        {course.name}
+                        <Link to={`/courses/${course.id}`}>{course.name}</Link>
                         {isOwnProfile && (
                             <button onClick={() => handleEnrollCourse(course.id)}>
                                 {course.students.includes(user.pk) ? 'Unenroll' : 'Enroll'}
