@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This project is an eLearning web application developed as the final coursework for CM3035 - Advanced Web Development. It leverages Django, Django REST Framework, Channels, and WebSockets to provide a platform for teachers to create and manage courses, students to enroll, interact, and share feedback, and for real-time communication.
+This project is an eLearning web application developed as the final coursework for CM3035 - Advanced Web Development. It leverages Django, Django REST Framework, Channels, WebSockets, and Celery to provide a comprehensive platform. Teachers can create and manage courses, students can enroll, interact, and share feedback, with real-time communication and asynchronous task processing for notifications.
 
 ## Features
 
@@ -16,32 +16,33 @@ This project is an eLearning web application developed as the final coursework f
     *   Storage of user information (username, full name, email, profile picture, registration date).
     *   User homepage displaying user information, enrolled courses, status updates.
     *   Discoverable and visible user homepages.
+    *   Profile picture upload and display.
+    *   Profile editing (full name, email, profile picture).
 *   **Status Updates:**
     *   Students can post status updates to their home pages.
 *   **Courses:**
     *   Teachers can create courses with names and descriptions.
-    *   Students can view a list of available courses and enroll.
+    *   Students can view a list of available courses and enroll/unenroll.
     *   Teachers can upload course materials (text, files).
+    *   Teachers can remove students from courses.
 *   **Course Materials:**
-    * Course material objects linked to course objects
-    * Materials can be text, PDFs, images or other file objects
-    * Materials are uploaded by teachers
+    *   Course material objects linked to course objects.
+    *   Materials can be text, PDFs, images or other file objects.
+    *   Materials are uploaded by teachers.
 *   **Course Feedback:**
     *   Students can leave feedback for a course.
 *   **Real-time Chat (Basic):**
     *   Basic real-time text chat functionality using WebSockets.
+*   **Notifications:**
+    *   Asynchronous notifications using Celery for:
+        *   Students when they enroll or unenroll in courses.
+        *   Teachers when students enroll in their courses.
+        *   Students when new material is added to a course.
+        *   Students when they are removed from a course.
+    *   User-specific notification feed with read/unread status.
 *   **REST API:**
     *   RESTful interface for user data (list, detail, registration, status updates).
     *   Token-based authentication using `rest_framework_simplejwt`.
-
-### To Be Implemented
-
-*   **Teacher Functionality:**
-    *   Teacher search for students and other teachers.
-    *   Teacher removal/blocking of students from courses.
-*   **Notifications:**
-    *   Notifications to teachers when students enroll in their courses.
-    *   Notifications to students when new material is added to a course.
 
 ## Technology Stack
 
@@ -52,13 +53,14 @@ This project is an eLearning web application developed as the final coursework f
     *   Django Channels
     *   Channels-Redis
     *   Rest Framework Simple JWT
+    *   Celery
     *   SQLite3
 *   **Frontend:**
     *   React
     *   TypeScript
     *   Axios
 *   **Other:**
-    *   Redis (for Channels)
+    *   Redis (for Channels and Celery)
 
 ## Setup Instructions
 
@@ -72,8 +74,8 @@ This project is an eLearning web application developed as the final coursework f
 1.  **Clone the repository:**
 
     ```bash
-    git clone <repository_url>
-    cd <project_directory>
+    git clone https://github.com/bwfiq/elearning_app
+    cd elearning_app
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -100,25 +102,22 @@ This project is an eLearning web application developed as the final coursework f
 5.  **Run Django development server:**
 
     ```bash
-    python manage.py runserver
+    python manage.py runserver # Also runs daphne for websockets
     ```
 
-6.  **Start the React frontend:**
+6.  **Start Celery worker in a separate process:**
+
+    ```bash
+    celery -A backend worker -l info
+    ```
+
+7.  **Start the React frontend in a separate process:**
 
     ```bash
     cd ../frontend
     npm install
     npm start
     ```
-
-### Running Channels
-
-1.  **Start Redis server:** (If not already running)
-2.  **Run Daphne server**
-    ```bash
-    daphne backend.asgi:application --port 8000
-    ```
-
 ### Running Unit Tests
 
 ```bash
@@ -138,7 +137,7 @@ Follow the prompts to create an admin user.
 
 ### Django Admin
 
-*   **Username:** admin 
+*   **Username:** admin
 *   **Password:** admin
 
 ### Teacher Account
@@ -161,6 +160,7 @@ The database is designed to store information about users, courses, course mater
 *   **CourseFeedback:** Stores feedback provided by students for courses, including the text content and timestamp.
 *   **Message:** Stores individual chat messages with user and timestamp information.
 *   **StatusUpdate:** Records user-specific updates
+*   **Notification:** Stores notifications for users, including the message, timestamp, and read status.
 
 Relationships are established using ForeignKey and ManyToManyField relationships.
 
@@ -176,6 +176,10 @@ Relationships are established using ForeignKey and ManyToManyField relationships
 *   `/api/users/<user_id>/status_updates/`:
     *   `GET`: List status updates for a user.
     *   `POST`: Create a new status update for a user.
+*   `/api/users/<user_id>/notifications/`:
+    *   `GET`: List notifications for a user.
+*   `/api/users/notifications/<notification_id>/mark_as_read/`:
+    *   `PATCH`: Mark a notification as read.
 *   `/api/token/`:
     *   `POST`: Obtain JWT access and refresh tokens.
 *   `/api/token/refresh/`:
@@ -189,6 +193,8 @@ Relationships are established using ForeignKey and ManyToManyField relationships
     *   `DELETE`: Delete a course (course creator only).
 *   `/api/courses/<pk>/enroll/`:
     *   `PATCH`: Enroll/unenroll a student in a course.
+*   `/api/courses/<pk>/remove_student/`:
+    *   `PATCH`: Remove a student from a course (teachers only).
 *   `/api/courses/<course_id>/materials/`:
     *   `GET`: List course materials.
     *   `POST`: Upload course materials (teachers only).
@@ -201,9 +207,10 @@ Relationships are established using ForeignKey and ManyToManyField relationships
     *   `POST`: Leave feedback for a course.
 
 ## Notes
-In this project, I initially faced challenges in integrating Django Channels for real-time communication. The configuration required a deep understanding of ASGI and Redis. However, with thorough research and experimentation, I successfully implemented basic WebSocket functionality for the chat feature. I also had trouble with permissions but after working with the teacher role I was able to apply the functionality to other parts of the project. If I were to attempt this project again, I would prioritize a more modular design with clearer separation of concerns, allowing for easier testing and maintenance.
+
+In this project, I initially faced challenges in integrating Django Channels for real-time communication. The configuration required a deep understanding of ASGI and Redis. However, with thorough research and experimentation, I successfully implemented basic WebSocket functionality for the chat feature. The integration of Celery for asynchronous notifications added another layer of complexity, requiring careful configuration of the Celery worker and task scheduling. If I were to attempt this project again, I would prioritize a more modular design with clearer separation of concerns, allowing for easier testing and maintenance.
 
 ## Development Environment
 
-*   **Operating System:** Linux (NixOS 25.05) 
+*   **Operating System:** Linux (NixOS 25.05)
 *   **Python Version:** 3.12
