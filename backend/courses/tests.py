@@ -1,4 +1,4 @@
-# backend/courses/tests.py
+# /backend/courses/tests.py
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -153,3 +153,15 @@ class CourseAPITests(TestCase):
         self.assertEqual(CourseMaterial.objects.first().course, course)
         self.assertEqual(CourseMaterial.objects.first().uploaded_by, self.teacher)
         self.assertTrue(CourseMaterial.objects.first().file.name.startswith('course_materials/test'))
+
+    def test_course_material_serializer_contains_uploaded_by(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.teacher_token)
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        course_material = CourseMaterial.objects.create(course=course, text_content='Test material', uploaded_by=self.teacher)
+        url = reverse('course-material-list-create', kwargs={'course_id': course.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('uploaded_by', response.data[0])
+        self.assertEqual(response.data[0]['uploaded_by'], self.teacher.id)
+        self.assertIn('uploaded_by_username', response.data[0])
+        self.assertEqual(response.data[0]['uploaded_by_username'], self.teacher.username)

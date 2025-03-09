@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import useAxios from './useAxios';
+import { CourseMaterial } from './types'; // Import the CourseMaterial interface
 
 interface Course {
     id: number;
@@ -25,9 +26,11 @@ const CoursePage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const axiosInstance = useAxios();
     const [studentDetails, setStudentDetails] = useState<User[]>([]);
+    const [courseMaterials, setCourseMaterials] = useState<CourseMaterial[]>([]);
 
     // useRef to track if the component has mounted
     const isMounted = useRef(false);
+    const isMaterialMounted = useRef(false);
 
     // Use useCallback to memoize fetchCourse
     const fetchCourse = useCallback(async () => {
@@ -56,6 +59,15 @@ const CoursePage: React.FC = () => {
         }
     }, [axiosInstance]);
 
+    const fetchCourseMaterials = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get<CourseMaterial[]>(`/api/courses/${courseId}/materials/`);
+            setCourseMaterials(response.data);
+        } catch (error) {
+            console.error('Error fetching course materials:', error);
+        }
+    }, [courseId, axiosInstance]);
+
     useEffect(() => {
         if (!isMounted.current) {
             if (courseId) {
@@ -70,6 +82,13 @@ const CoursePage: React.FC = () => {
             fetchStudentDetails(course.students);
         }
     }, [course, fetchStudentDetails]);
+
+    useEffect(() => {
+        if (courseId && !isMaterialMounted.current) {
+            fetchCourseMaterials();
+            isMaterialMounted.current = true;
+        }
+    }, [courseId, fetchCourseMaterials]);
 
     if (loading) {
         return <div>Loading course details...</div>;
@@ -87,6 +106,17 @@ const CoursePage: React.FC = () => {
             <ul>
                 {studentDetails.map(student => (
                     <li key={student.pk}>{student.full_name} ({student.username})</li>
+                ))}
+            </ul>
+
+            <h3>Course Materials:</h3>
+            <ul>
+                {courseMaterials.map(material => (
+                    <li key={material.id}>
+                        {material.text_content && <p>{material.text_content}</p>}
+                        {material.file && <a href={material.file} target="_blank" rel="noopener noreferrer">View File</a>}
+                        <p>Uploaded on: {new Date(material.upload_date).toLocaleString()}</p>
+                    </li>
                 ))}
             </ul>
         </div>
