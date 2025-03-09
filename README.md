@@ -1,116 +1,213 @@
-# cm3035-elearning-app
+Okay, here's a comprehensive `README.md` file tailored for your eLearning application, incorporating details requested in the assignment report and highlighting implemented/unimplemented features.
 
-This will be a web app that serves an elearning application. The backend will be a CRUD API built with Django and serve data to a React frontend.
+```markdown
+# eLearning Application
+
+## Introduction
+
+This project is an eLearning web application developed as the final coursework for CM3035 - Advanced Web Development. It leverages Django, Django REST Framework, Channels, and WebSockets to provide a platform for teachers to create and manage courses, students to enroll, interact, and share feedback, and for real-time communication.
 
 ## Features
 
-- Users should be able to:
-  - create new password-secured accounts
-  - be of either students or teachers with corresponding permissions
-  - store appropriate personal information such as username, real name, photo,
-    etc
-  - have a home page that is discoverable to other users and shows:
-    - user information
-    - registered courses
-    - upcoming deadlines
-    - status updates
-  - view a page that uses web sockets to enable real time chat
-- students should be able to:
-  - leave feedback for particular courses
-  - see a list of available courses
-  - select the courses they want to enrol to
-  - get notified when material is added to a course they are enrolled to
-- teachers should be able to:
-  - search for students and other teachers
-  - create courses and upload course material
-  - view their course pages and see list of students enrolled in the course
-  - remove students from their courses
-  - get notified when a student enrolls in one of their courses
-- An appropriate REST interface for all data should be provided
+### Implemented
 
-## Technical Specifications
+*   **User Authentication:**
+    *   User registration with password security.
+    *   User login and logout functionality.
+    *   Two user types: students and teachers.
+*   **User Profiles:**
+    *   Storage of user information (username, full name, email, profile picture, registration date).
+    *   User homepage displaying user information, enrolled courses, status updates.
+    *   Discoverable and visible user homepages.
+*   **Status Updates:**
+    *   Students can post status updates to their home pages.
+*   **Courses:**
+    *   Teachers can create courses with names and descriptions.
+    *   Students can view a list of available courses and enroll.
+    *   Teachers can upload course materials (text, files).
+*   **Course Materials:**
+    * Course material objects linked to course objects
+    * Materials can be text, PDFs, images or other file objects
+    * Materials are uploaded by teachers
+*   **Course Feedback:**
+    *   Students can leave feedback for a course.
+*   **Real-time Chat (Basic):**
+    *   Basic real-time text chat functionality using WebSockets.
+*   **REST API:**
+    *   RESTful interface for user data (list, detail, registration, status updates).
+    *   Token-based authentication using `rest_framework_simplejwt`.
 
-- The app will be a Single Page Application built with Django. It will make
-  appropriate use of:
-  - models and migrations (using an appropriate database model for accoutns,
-    stored data, and the relationships between accounts)
-  - form, validators, and serialisation
-  - django-rest-framework
-  - URL routing
-  - unit testing for both client and server side code
-- The app will be Dockerised.
-- This repository will make use of GitHub Actions for CI/CD.
+### To Be Implemented
 
-### API Endpoints
+*   **Teacher Functionality:**
+    *   Teacher search for students and other teachers.
+    *   Teacher removal/blocking of students from courses.
+*   **Notifications:**
+    *   Notifications to teachers when students enroll in their courses.
+    *   Notifications to students when new material is added to a course.
 
-The backend provides a REST API for managing users, courses, and course materials.  Below is a summary of the planned endpoints:
+## Technology Stack
 
-**Users App:**
+*   **Backend:**
+    *   Python 3.x
+    *   Django 5.1.6
+    *   Django REST Framework
+    *   Django Channels
+    *   Channels-Redis
+    *   Rest Framework Simple JWT
+    *   SQLite3
+*   **Frontend:**
+    *   React
+    *   TypeScript
+    *   Axios
+*   **Other:**
+    *   Redis (for Channels)
 
-*   `/api/users/`: User list, creation, details, update, deletion.
-*   `/api/register/`: User registration.
-*   `/api/users/{user_id}/`: User data and home page data.
+## Setup Instructions
 
-### Dependencies
+### Prerequisites
 
-This project was developed with:
+*   Python 3.x installed
+*   Redis server installed and running
 
-- OS: Linux
-- Python 3.12.9
-- Django 5.1.6
-- django-cors-headers 4.7.0
-- djangorestframework 3.15.2
+### Installation
 
-## Setup
+1.  **Clone the repository:**
 
-### Development Environment
+    ```bash
+    git clone <repository_url>
+    cd <project_directory>
+    ```
 
-#### Using Python venv
+2.  **Create and activate a virtual environment:**
 
-1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
-2. Create a virtual environment: `python3 -m venv venv` (or
-   `python -m venv venv` if python3 is not default)
-3. Activate the virtual environment:
-   - Linux/macOS: `source venv/bin/activate`
-   - Windows: `venv\Scripts\activate`
-4. Install dependencies: `pip install -r requirements.txt`
+    ```bash
+    python -m venv venv
+    source venv/bin/activate   # On Linux/macOS
+    venv\Scripts\activate  # On Windows
+    ```
 
-#### Using nix-shell
+3.  **Install dependencies:**
 
-1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
-2. Run the development shell with
-   `nix-shell --extra-experimental-features "nix-command flakes"`
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-#### Using direnv
+4.  **Apply migrations:**
 
-1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
-2. Run the command `direnv allow .` to enable loading the .envrc.
-3. All dependencies will be set up when entering the project directory.
+    ```bash
+    cd backend
+    python manage.py migrate
+    ```
 
-#### Node Dependencies
+5.  **Run Django development server:**
 
-1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
-2. Go to the frontend directory: `cd frontend/`
-3. Run the command `npm install` to install the node dependencies.
+    ```bash
+    python manage.py runserver
+    ```
 
-### Project Setup
+6.  **Start the React frontend:**
 
-Run the following commands to set up the database and run the development
-server:
+    ```bash
+    cd ../frontend
+    npm install
+    npm start
+    ```
 
-```sh
-# Running the backend
+### Running Channels
+
+1.  **Start Redis server:** (If not already running)
+2.  **Run Daphne server**
+    ```bash
+    daphne backend.asgi:application --port 8000
+    ```
+
+### Running Unit Tests
+
+```bash
 cd backend
-python manage.py makemigrations
-python manage.py migrate
-daphne backend.asqi:application
-
-# Running the frontend
-cd frontend
-npm start
+python manage.py test
 ```
 
-## Acknowledgements
+### Creating a Superuser (Django Admin)
 
-- https://blog.logrocket.com/using-react-django-create-app-tutorial/ for
-  providing much of the startup code for this project
+```bash
+python manage.py createsuperuser
+```
+
+Follow the prompts to create an admin user.
+
+## Login Credentials
+
+### Django Admin
+
+*   **Username:** admin 
+*   **Password:** admin
+
+### Teacher Account
+
+*   **Username:** testteacher
+*   **Password:** testpassword
+
+### Student Account
+
+*   **Username:** testuser
+*   **Password:** testpassword
+
+## Database Design
+
+The database is designed to store information about users, courses, course materials, feedback, and real-time chat messages. Key models include:
+
+*   **User:** Extends Django's `AbstractUser` to include `full_name`, `profile_picture`, and `is_teacher` fields.
+*   **Course:** Stores course information, including the creator (teacher), name, description, and enrolled students.
+*   **CourseMaterial:** Stores course materials associated with a course, including the uploaded file or text content, uploader, and upload date.
+*   **CourseFeedback:** Stores feedback provided by students for courses, including the text content and timestamp.
+*   **Message:** Stores individual chat messages with user and timestamp information.
+*   **StatusUpdate:** Records user-specific updates
+
+Relationships are established using ForeignKey and ManyToManyField relationships.
+
+## REST API Endpoints
+
+*   `/api/users/`:
+    *   `GET`: List all users (with optional filtering by username or pk).
+    *   `POST`: Create a new user (registration).
+*   `/api/users/<pk>/`:
+    *   `GET`: Retrieve user details.
+    *   `PUT`: Update user details.
+    *   `DELETE`: Delete a user.
+*   `/api/users/<user_id>/status_updates/`:
+    *   `GET`: List status updates for a user.
+    *   `POST`: Create a new status update for a user.
+*   `/api/token/`:
+    *   `POST`: Obtain JWT access and refresh tokens.
+*   `/api/token/refresh/`:
+    *   `POST`: Refresh JWT access token.
+*   `/api/courses/`:
+    *   `GET`: List all courses.
+    *   `POST`: Create a new course (teachers only).
+*   `/api/courses/<pk>/`:
+    *   `GET`: Retrieve course details.
+    *   `PUT`: Update course details (course creator only).
+    *   `DELETE`: Delete a course (course creator only).
+*   `/api/courses/<pk>/enroll/`:
+    *   `PATCH`: Enroll/unenroll a student in a course.
+*   `/api/courses/<course_id>/materials/`:
+    *   `GET`: List course materials.
+    *   `POST`: Upload course materials (teachers only).
+*   `/api/courses/<course_id>/materials/<pk>/`:
+    *   `GET`: Retrieve course material details.
+    *   `PUT`: Update course material details.
+    *   `DELETE`: Delete a course material.
+*   `/api/courses/<course_id>/feedback/`:
+    *   `GET`: List course feedback.
+    *   `POST`: Leave feedback for a course.
+
+## Notes
+In this project, I initially faced challenges in integrating Django Channels for real-time communication. The configuration required a deep understanding of ASGI and Redis. However, with thorough research and experimentation, I successfully implemented basic WebSocket functionality for the chat feature. I also had trouble with permissions but after working with the teacher role I was able to apply the functionality to other parts of the project. If I were to attempt this project again, I would prioritize a more modular design with clearer separation of concerns, allowing for easier testing and maintenance.
+
+## Development Environment
+
+*   **Operating System:** Linux (NixOS 25.05) 
+*   **Python Version:** 3.12
+
