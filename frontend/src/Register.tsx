@@ -1,3 +1,4 @@
+// frontend/src/Register.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +8,7 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
+    const [isTeacher, setIsTeacher] = useState(false); // New state for teacher status
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -20,6 +22,7 @@ const Register = () => {
                 password: password,
                 full_name: fullName,
                 email: email,
+                is_teacher: isTeacher, // Send teacher status to the backend
             });
             // Registration successful, redirect to login page or home page
             navigate('/login');
@@ -69,6 +72,25 @@ const Register = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                </div>
+                <div>
+                    <label>
+                        Register as:
+                        <input
+                            type="radio"
+                            value="student"
+                            checked={!isTeacher}
+                            onChange={() => setIsTeacher(false)}
+                        />
+                        Student
+                        <input
+                            type="radio"
+                            value="teacher"
+                            checked={isTeacher}
+                            onChange={() => setIsTeacher(true)}
+                        />
+                        Teacher
+                    </label>
                 </div>
                 <button type="submit">Register</button>
             </form>
