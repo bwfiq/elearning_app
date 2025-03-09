@@ -9,7 +9,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      IMAGE_TAG: ${{ github.sha }}
+      IMAGE_TAG: latest
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }} # This is your GitHub username/repo_name
 

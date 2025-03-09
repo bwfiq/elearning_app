@@ -1,4 +1,4 @@
-FROM python:3.12-slim-buster
+FROM python:3.12
 
 WORKDIR /app
 
@@ -25,6 +25,7 @@ RUN python manage.py collectstatic --noinput
 
 # Expose port 8000
 EXPOSE 8000
+EXPOSE 8001
 
 # Start the application with gunicorn and daphne
 CMD gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 & \
