@@ -13,7 +13,12 @@ class IsTeacher(BasePermission):
 class CourseListCreate(generics.ListCreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated, IsTeacher]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated(), IsTeacher()]
+        return [IsAuthenticated()]
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
@@ -21,7 +26,12 @@ class CourseListCreate(generics.ListCreateAPIView):
 class CourseRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated, IsTeacher]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsAuthenticated(), IsTeacher()]
+        return [IsAuthenticated()]
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
