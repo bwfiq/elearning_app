@@ -69,6 +69,9 @@ class EnrollCourse(generics.UpdateAPIView):
         course = self.get_object()
         user = request.user
 
+        if user.is_teacher:
+            return Response({'detail': 'Teachers cannot enroll in courses.'}, status=status.HTTP_403_FORBIDDEN)
+
         if user in course.students.all():
             course.students.remove(user)
             return Response({'status': 'un enrolled'}, status=status.HTTP_200_OK)
