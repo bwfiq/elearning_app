@@ -15,6 +15,7 @@ interface User {
     full_name: string;
     email: string;
     registration_date: string;
+    is_teacher: boolean;
 }
 
 interface Course {
@@ -31,6 +32,7 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'));
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
 
     const navigate = useNavigate();
 
@@ -67,8 +69,23 @@ function App() {
             }
         };
 
+        const fetchLoggedInUser = async () => {
+          try {
+              const username = localStorage.getItem('username');
+              const response = await axios.get<User[]>(`${apiUrl}/api/users/?username=${username}`);
+               if (Array.isArray(response.data) && response.data.length > 0) {
+                  setLoggedInUser(response.data[0]);
+              } else {
+                  setLoggedInUser(null);
+              }
+          } catch (error) {
+              console.error('Error fetching logged in user:', error);
+              setLoggedInUser(null);
+          }
+      };
+
         if (isLoggedIn) {
-            Promise.all([fetchUsers(), fetchCourses()]);
+            Promise.all([fetchUsers(), fetchCourses(), fetchLoggedInUser()]);
         } else {
             setLoading(false);
         }
@@ -95,20 +112,20 @@ function App() {
             <Navbar isLoggedIn={isLoggedIn} logout={logout} />
             <div className="content">
                 <Routes>
-                    <Route path="/" element={isLoggedIn ? <HomePage users={users} courses={courses} /> : <div>Please login to see the user and course lists.</div>} />
+                    <Route path="/" element={isLoggedIn ? <HomePage users={users} courses={courses} loggedInUser={loggedInUser} /> : <div>Please login to see the user and course lists.</div>} />
                     <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
                     <Route path="/register" element={<Register />} /> {/* Add the Register route */}
                     <Route path="/:username" element={<UserHomePage />} />
                     <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
-                    <Route path="/courses" element={isLoggedIn ? <CourseList courses={courses} /> : <div>Please login to see the course list.</div>} />
-                    <Route path="/users" element={isLoggedIn ? <UserList users={users} /> : <div>Please login to see the user list.</div>} />
+                    <Route path="/courses" element={isLoggedIn ? <CourseList courses={courses} loggedInUser={loggedInUser} /> : <div>Please login to see the course list.</div>} />
+                    <Route path="/users" element={isLoggedIn ? <UserList users={users} loggedInUser={loggedInUser} /> : <div>Please login to see the user list.</div>} />
                 </Routes>
             </div>
         </div>
     );
 }
 
-function HomePage({ users, courses }: { users: User[]; courses: Course[] }) {
+function HomePage({ users, courses, loggedInUser }: { users: User[]; courses: Course[]; loggedInUser: User | null }) {
     return (
         <div className="home-page">
             <div className="user-list">
@@ -134,8 +151,7 @@ function HomePage({ users, courses }: { users: User[]; courses: Course[] }) {
         </div>
     );
 }
-
-function CourseList({ courses }: { courses: Course[] }) {
+function CourseList({ courses, loggedInUser }: { courses: Course[]; loggedInUser: User | null }) {
     return (
         <div className="course-list">
             <h2>Courses</h2>
@@ -150,7 +166,7 @@ function CourseList({ courses }: { courses: Course[] }) {
     );
 }
 
-function UserList({ users }: { users: User[] }) {
+function UserList({ users, loggedInUser }: { users: User[]; loggedInUser: User | null }) {
     return (
         <div className="user-list">
             <h2>Users</h2>

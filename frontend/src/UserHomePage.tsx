@@ -43,6 +43,7 @@ function UserHomePage() {
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [courses, setCourses] = useState<Course[]>([]);
     const [enrolledCourses, setEnrolledCourses] = useState<number[]>([]);
+    const [loggedInUser, setLoggedInUser] = useState<User | null>(null); // Add state for the logged-in user
 
     // New state variables for course creation
     const [newCourseName, setNewCourseName] = useState('');
@@ -52,6 +53,7 @@ function UserHomePage() {
     const isMounted = useRef(false);
     const isStatusUpdatesMounted = useRef(false);
     const isCourseMounted = useRef(false);
+    const isUserMounted = useRef(false);
 
     // Use useCallback to memoize fetchUser
     const fetchUser = useCallback(async () => {
@@ -91,6 +93,21 @@ function UserHomePage() {
         }
     }, [axiosInstance]);
 
+    const fetchLoggedInUser = useCallback(async () => {
+        try {
+            const username = localStorage.getItem('username');
+            const response = await axiosInstance.get<User[]>(`/api/users/?username=${username}`);
+            if (Array.isArray(response.data) && response.data.length > 0) {
+                setLoggedInUser(response.data[0]);
+            } else {
+                setLoggedInUser(null);
+            }
+        } catch (error) {
+            console.error('Error fetching logged in user:', error);
+            setLoggedInUser(null);
+        }
+    }, [axiosInstance]);
+
     useEffect(() => {
         if (!isMounted.current) {
             fetchUser();
@@ -111,6 +128,13 @@ function UserHomePage() {
             isCourseMounted.current = true;
         }
     }, [fetchCourses]);
+
+    useEffect(() => {
+        if (!isUserMounted.current) {
+            fetchLoggedInUser();
+            isUserMounted.current = true;
+        }
+    }, [fetchLoggedInUser]);
 
     const handleStatusSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -273,7 +297,8 @@ function UserHomePage() {
                 {courses.map(course => (
                     <li key={course.id}>
                         <Link to={`/courses/${course.id}`}>{course.name}</Link>
-                        {isOwnProfile && (
+                        {/* Conditionally render the button */}
+                        {loggedInUser && !loggedInUser.is_teacher && (
                             <button onClick={() => handleEnrollCourse(course.id)}>
                                 {course.students.includes(user.pk) ? 'Unenroll' : 'Enroll'}
                             </button>
