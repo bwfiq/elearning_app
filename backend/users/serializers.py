@@ -17,3 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+class StatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatusUpdate
+        fields = ('id', 'user', 'text', 'timestamp')
+        read_only_fields = ('user', 'timestamp', 'id')
