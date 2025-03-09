@@ -1,4 +1,4 @@
-# backend/courses/views.py
+# courses/views.py
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission
@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from .models import Course, CourseMaterial, CourseFeedback
 from .serializers import CourseSerializer, CourseEnrollSerializer, CourseMaterialSerializer, CourseFeedbackSerializer, CourseRemoveStudentSerializer
 from users.models import User  # Import the User model
+from .tasks import send_enrollment_notification, send_unenrollment_notification, send_removal_notification, send_teacher_enrollment_notification
 
 class IsTeacher(BasePermission):
     def has_permission(self, request, view):
@@ -74,9 +75,12 @@ class EnrollCourse(generics.UpdateAPIView):
 
         if user in course.students.all():
             course.students.remove(user)
+            send_unenrollment_notification.delay(user.pk, course.name) # celery task
             return Response({'status': 'un enrolled'}, status=status.HTTP_200_OK)
         else:
             course.students.add(user)
+            send_enrollment_notification.delay(user.pk, course.name) # celery task
+            send_teacher_enrollment_notification.delay(course.creator.pk, user.username, course.name)
             return Response({'status': 'enrolled'}, status=status.HTTP_200_OK)
 
 class IsCourseCreatorOrReadOnly(permissions.BasePermission):
@@ -172,6 +176,7 @@ class RemoveStudentFromCourse(generics.UpdateAPIView):
             return Response({'detail': 'Student not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if course.remove_student(student):
+            send_removal_notification.delay(student.pk, course.name)
             return Response({'detail': 'Student removed from course.'}, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'Student is not enrolled in this course.'}, status=status.HTTP_400_BAD_REQUEST)

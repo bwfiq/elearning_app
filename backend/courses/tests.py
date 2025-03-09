@@ -6,6 +6,8 @@ from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 from .models import Course, CourseMaterial, CourseFeedback
 from django.core.files.uploadedfile import SimpleUploadedFile
+from unittest.mock import patch
+from users.models import Notification
 
 User = get_user_model()
 
@@ -87,7 +89,9 @@ class CourseAPITests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_enroll_course(self):
+    @patch('courses.views.send_enrollment_notification.delay')
+    @patch('courses.views.send_teacher_enrollment_notification.delay')
+    def test_enroll_course(self, mock_teacher_notification, mock_student_notification):
         course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
         url = reverse('course-enroll', kwargs={'pk': course.pk})
         response = self.client.patch(url)
@@ -95,8 +99,11 @@ class CourseAPITests(TestCase):
         self.assertEqual(course.students.count(), 1)
         self.assertEqual(course.students.first(), self.user)
         self.assertEqual(response.data['status'], 'enrolled')
+        mock_student_notification.assert_called_once_with(self.user.pk, course.name)
+        mock_teacher_notification.assert_called_once_with(self.teacher.pk, self.user.username, course.name)
 
-    def test_unenroll_course(self):
+    @patch('courses.views.send_unenrollment_notification.delay')
+    def test_unenroll_course(self, mock_notification):
         course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
         course.students.add(self.user)
         url = reverse('course-enroll', kwargs={'pk': course.pk})
@@ -104,6 +111,7 @@ class CourseAPITests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(course.students.count(), 0)
         self.assertEqual(response.data['status'], 'un enrolled')
+        mock_notification.assert_called_once_with(self.user.pk, course.name)
 
     def test_enroll_course_unauthenticated(self):
         self.client.credentials()  # Remove authentication
@@ -188,3 +196,21 @@ class CourseAPITests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['text'], 'Test feedback')
+
+    @patch('courses.views.send_removal_notification.delay')
+    def test_remove_student_from_course(self, mock_notification):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.teacher_token)
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        course.students.add(self.user)
+        url = reverse('course-remove-student', kwargs={'pk': course.pk})
+        data = {'student_id': self.user.pk}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(course.students.count(), 0)
+        mock_notification.assert_called_once_with(self.user.pk, course.name)
+
+    def test_get_user_notifications(self):
+        # Create a notification for the user
+        Notification.objects.create(user=self.user, message='Test notification')
+        
+        # Get the URL for the user's notifications

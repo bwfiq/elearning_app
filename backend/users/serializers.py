@@ -1,6 +1,6 @@
 # users/serializers.py
 from rest_framework import serializers
-from .models import User, StatusUpdate
+from .models import User, StatusUpdate, Notification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,5 +21,11 @@ class UserSerializer(serializers.ModelSerializer):
 class StatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = StatusUpdate
-        fields = ('id', 'user', 'text', 'timestamp')
-        read_only_fields = ('user', 'timestamp', 'id')
+        fields = '__all__'
+        read_only_fields = ('user', 'timestamp')
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'
+        read_only_fields = ('user', 'timestamp', 'is_read')

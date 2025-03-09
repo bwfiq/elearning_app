@@ -1,4 +1,4 @@
-# backend/users/views.py
+# users/views.py
 from django.shortcuts import render
 
 from rest_framework.response import Response
@@ -6,9 +6,39 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from .models import User, StatusUpdate
+from .models import User, StatusUpdate, Notification
 from .serializers import *
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_notifications(request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.user != user:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    notifications = Notification.objects.filter(user=user).order_by('-timestamp')
+    serializer = NotificationSerializer(notifications, many=True)
+    return Response(serializer.data)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def mark_notification_as_read(request, notification_id):
+    try:
+        notification = Notification.objects.get(pk=notification_id)
+    except Notification.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if notification.user != request.user:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    notification.is_read = True
+    notification.save()
+    serializer = NotificationSerializer(notification)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
