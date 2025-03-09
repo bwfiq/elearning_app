@@ -1,5 +1,5 @@
 // frontend/src/UserHomePage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import useAxios from './useAxios';
 
@@ -27,42 +27,53 @@ function UserHomePage() {
     const axiosInstance = useAxios();
     const [statusUpdates, setStatusUpdates] = useState<StatusUpdate[]>([]);
     const [newStatusText, setNewStatusText] = useState('');
-    const loggedInUsername = localStorage.getItem('username'); // Get logged-in username
+    const loggedInUsername = localStorage.getItem('username');
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await axiosInstance.get<User>(`/api/users/?username=${username}`);
-                if (Array.isArray(response.data) && response.data.length > 0) {
-                    setUser(response.data[0]);
-                } else {
-                    setUser(null);
-                }
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching user:', error);
-                setLoading(false);
+    // useRef to track if the component has mounted
+    const isMounted = useRef(false);
+    const isStatusUpdatesMounted = useRef(false)
+
+    // Use useCallback to memoize fetchUser
+    const fetchUser = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get<User>(`/api/users/?username=${username}`);
+            if (Array.isArray(response.data) && response.data.length > 0) {
+                setUser(response.data[0]);
+            } else {
                 setUser(null);
             }
-        };
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            setLoading(false);
+            setUser(null);
+        }
+    }, [username, axiosInstance]); // Dependencies for useCallback
 
-        fetchUser();
-    }, [username, axiosInstance]);
+    // Use useCallback to memoize fetchStatusUpdates
+    const fetchStatusUpdates = useCallback(async (userId: number) => {
+        try {
+            const response = await axiosInstance.get<StatusUpdate[]>(`/api/users/${userId}/status_updates/`);
+            setStatusUpdates(response.data);
+        } catch (error) {
+            console.error('Error fetching status updates:', error);
+        }
+    }, [axiosInstance]); // Dependencies for useCallback
+
 
     useEffect(() => {
-        const fetchStatusUpdates = async () => {
-            if (user) {
-                try {
-                    const response = await axiosInstance.get<StatusUpdate[]>(`/api/users/${user.pk}/status_updates/`);
-                    setStatusUpdates(response.data);
-                } catch (error) {
-                    console.error('Error fetching status updates:', error);
-                }
-            }
-        };
+        if (!isMounted.current) {
+            fetchUser();
+            isMounted.current = true; // Set the ref to true after initial mount
+        }
+    }, [fetchUser]);
 
-        fetchStatusUpdates();
-    }, [user, axiosInstance]);
+    useEffect(() => {
+        if (user && !isStatusUpdatesMounted.current) {
+            fetchStatusUpdates(user.pk);
+            isStatusUpdatesMounted.current = true
+        }
+    }, [user, fetchStatusUpdates]);
 
 
     const handleStatusSubmit = async (e: React.FormEvent) => {
@@ -71,8 +82,7 @@ function UserHomePage() {
             try {
                 await axiosInstance.post(`/api/users/${user.pk}/status_updates/`, { text: newStatusText });
                 // Refresh status updates after posting
-                const response = await axiosInstance.get<StatusUpdate[]>(`/api/users/${user.pk}/status_updates/`);
-                setStatusUpdates(response.data);
+                fetchStatusUpdates(user.pk)
                 setNewStatusText(''); // Clear the input field
             } catch (error) {
                 console.error('Error posting status update:', error);
