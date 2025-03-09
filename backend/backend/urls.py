@@ -5,6 +5,8 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -16,3 +18,5 @@ urlpatterns = [
     path('api/register/', views.register_user, name='register_user'),
     path('api/users/<int:user_id>/status_updates/', views.user_status_updates, name='user_status_updates'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
