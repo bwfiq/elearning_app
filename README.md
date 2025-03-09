@@ -1,6 +1,3 @@
-Okay, here's a comprehensive `README.md` file tailored for your eLearning application, incorporating details requested in the assignment report and highlighting implemented/unimplemented features.
-
-```markdown
 # eLearning Application
 
 ## Introduction
@@ -210,4 +207,3 @@ In this project, I initially faced challenges in integrating Django Channels for
 
 *   **Operating System:** Linux (NixOS 25.05) 
 *   **Python Version:** 3.12
-
