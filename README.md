@@ -50,21 +50,6 @@ The backend provides a REST API for managing users, courses, and course material
 *   `/api/users/`: User list, creation, details, update, deletion.
 *   `/api/register/`: User registration.
 *   `/api/users/{user_id}/`: User data and home page data.
-*   `/api/search/users/?q={query}`: User search.
-
-**Courses App:**
-
-*   `/api/courses/`: Course list, creation, details, update, deletion.
-*   `/api/courses/{course_id}/students/`: Course students, enrollment, removal.
-*   `/api/courses/available/`: Available courses.
-*   `/api/courses/{course_id}/materials/`: Course materials management.
-*   `/api/courses/{course_id}/feedback/`: Course feedback management.
-*   `/api/courses/{course_id}/deadlines/`: Course deadlines management.
-*   `/api/search/courses/?q={query}`: Course search.
-
-**Chat App:**
-
-*   `ws://{domain}/ws/chat/{room_name}/`: Real-time chat (WebSocket).
 
 ### Dependencies
 
@@ -105,7 +90,8 @@ This project was developed with:
 #### Node Dependencies
 
 1. Clone the repository: `git clone https://github.com/bwfiq/elearning_app.git`
-2. Run the command `npm install` to install the node dependencies.
+2. Go to the frontend directory: `cd frontend/`
+3. Run the command `npm install` to install the node dependencies.
 
 ### Project Setup
 
