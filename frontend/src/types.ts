@@ -1,4 +1,5 @@
 // frontend/src/types.ts
+
 export interface CourseMaterial {
     id: number;
     course: number;
@@ -23,4 +24,12 @@ export interface Course {
     creator: number;
     students: number[];
     creator_username: string; // Add creator_username
+}
+
+export interface Notification {
+    id: number;
+    user: number;
+    message: string;
+    timestamp: string;
+    is_read: boolean;
 }

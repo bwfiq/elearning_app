@@ -9,6 +9,7 @@ import Register from './Register'; // Import the Register component
 import CoursePage from './CoursePage'; // Import the CoursePage component
 import Navbar from './Navbar'; // Import the Navbar component
 import Chat from './Chat'; // Import the Chat component
+import Notifications from './Notifications';
 
 
 interface User {
@@ -20,17 +21,7 @@ interface User {
     is_teacher: boolean;
 }
 
-interface Course {
-    id: number;
-    name: string;
-    description: string;
-    creator: number;
-    students: number[];
-}
-
 function App() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'));
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -39,38 +30,6 @@ function App() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await axios.get<User[]>(`${apiUrl}/api/users/`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-                    },
-                });
-                setUsers(response.data);
-            } catch (error: any) {
-                console.error('Error fetching users:', error);
-                if (error.response && error.response.status === 401) {
-                    // Token might be invalid, force logout
-                    logout();
-                }
-            }
-        };
-
-        const fetchCourses = async () => {
-            try {
-                const response = await axios.get<Course[]>(`${apiUrl}/api/courses/`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-                    },
-                });
-                setCourses(response.data);
-            } catch (error) {
-                console.error('Error fetching courses:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         const fetchLoggedInUser = async () => {
           try {
               const username = localStorage.getItem('username');
@@ -83,11 +42,13 @@ function App() {
           } catch (error) {
               console.error('Error fetching logged in user:', error);
               setLoggedInUser(null);
+          } finally {
+            setLoading(false);
           }
       };
 
         if (isLoggedIn) {
-            Promise.all([fetchUsers(), fetchCourses(), fetchLoggedInUser()]);
+            fetchLoggedInUser();
         } else {
             setLoading(false);
         }
@@ -106,7 +67,7 @@ function App() {
     };
 
     if (loading) {
-        return <div>Loading users and courses...</div>;
+        return <div>Loading...</div>;
     }
 
     return (
@@ -114,73 +75,15 @@ function App() {
             <Navbar isLoggedIn={isLoggedIn} logout={logout} />
             <div className="content">
                 <Routes>
-                    <Route path="/" element={isLoggedIn ? <HomePage users={users} courses={courses} loggedInUser={loggedInUser} /> : <div>Please login to see the user and course lists.</div>} />
+                    <Route path="/" element={isLoggedIn && loggedInUser ? <Notifications userId={loggedInUser.pk} /> : <div>Please login to see your notifications.</div>} />
                     <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
                     <Route path="/register" element={<Register />} /> {/* Add the Register route */}
                     <Route path="/:username" element={<UserHomePage />} />
                     <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
-                    <Route path="/courses" element={isLoggedIn ? <CourseList courses={courses} loggedInUser={loggedInUser} /> : <div>Please login to see the course list.</div>} />
-                    <Route path="/users" element={isLoggedIn ? <UserList users={users} loggedInUser={loggedInUser} /> : <div>Please login to see the user list.</div>} />
                     <Route path="/chat" element={<Chat />} /> {/* Add the Chat route */}
 
                 </Routes>
             </div>
-        </div>
-    );
-}
-
-function HomePage({ users, courses, loggedInUser }: { users: User[]; courses: Course[]; loggedInUser: User | null }) {
-    return (
-        <div className="home-page">
-            <div className="user-list">
-                <h2>Users</h2>
-                <ul>
-                    {users.map(user => (
-                        <li key={user.pk}>
-                            <Link to={`/${user.username}`}>{user.username}</Link> ({user.full_name}) - {user.email}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            <div className="course-list">
-                <h2>Courses</h2>
-                <ul>
-                    {courses.map(course => (
-                        <li key={course.id}>
-                            <Link to={`/courses/${course.id}`}>{course.name}</Link>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-    );
-}
-function CourseList({ courses, loggedInUser }: { courses: Course[]; loggedInUser: User | null }) {
-    return (
-        <div className="course-list">
-            <h2>Courses</h2>
-            <ul>
-                {courses.map(course => (
-                    <li key={course.id}>
-                        <Link to={`/courses/${course.id}`}>{course.name}</Link>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-}
-
-function UserList({ users, loggedInUser }: { users: User[]; loggedInUser: User | null }) {
-    return (
-        <div className="user-list">
-            <h2>Users</h2>
-            <ul>
-                {users.map(user => (
-                    <li key={user.pk}>
-                        <Link to={`/${user.username}`}>{user.username}</Link> ({user.full_name}) - {user.email}
-                    </li>
-                ))}
-            </ul>
         </div>
     );
 }
