@@ -6,7 +6,7 @@ const Chat: React.FC = () => {
     const [newMessage, setNewMessage] = useState('');
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const username = localStorage.getItem('username') || 'Anonymous';
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.API_URL || 'http://localhost:8000';
     const wsURL = apiUrl.replace('http', 'ws') + '/ws/chat/';
 
     const chatBoxRef = useRef<HTMLDivElement>(null); // Ref for the chat box

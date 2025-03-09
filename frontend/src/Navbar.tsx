@@ -23,7 +23,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, logout }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isSearchOpen, setIsSearchOpen] = useState(false); // State to control dropdown visibility
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.API_URL || 'http://localhost:8000';
     const searchInputRef = useRef<HTMLInputElement>(null);
     const accessToken = localStorage.getItem('access_token');  // Get access token
 

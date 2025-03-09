@@ -11,7 +11,7 @@ const Register = () => {
     const [isTeacher, setIsTeacher] = useState(false); // New state for teacher status
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.API_URL || 'http://localhost:8000';
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
