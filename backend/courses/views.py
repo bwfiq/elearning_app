@@ -110,14 +110,19 @@ class CourseMaterialListCreate(generics.ListCreateAPIView):
 
 class CourseMaterialRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseMaterialSerializer
-    permission_classes = [IsAuthenticated, IsEnrolled]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         course_id = self.kwargs['course_id']
         return CourseMaterial.objects.filter(course_id=course_id)
 
     def get_object(self):
-         return get_object_or_404(CourseMaterial, pk=self.kwargs['pk'])
+         material = get_object_or_404(CourseMaterial, pk=self.kwargs['pk'])
+         course = get_object_or_404(Course, pk=self.kwargs['course_id'])
+         if self.request.user != material.uploaded_by and not self.request.user.is_staff and self.request.user != course.creator:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+         return material
+
 
     def perform_update(self, serializer):
         material = self.get_object()
@@ -132,11 +137,17 @@ class CourseMaterialRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView)
 
 class CourseFeedbackListCreate(generics.ListCreateAPIView):
     serializer_class = CourseFeedbackSerializer
-    permission_classes = [IsAuthenticated, IsEnrolled]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         course_id = self.kwargs['course_id']
-        return CourseFeedback.objects.filter(course_id=course_id).order_by('-timestamp')
+        course = get_object_or_404(Course, pk=course_id)
+
+        if self.request.user == course.creator:
+            return CourseFeedback.objects.filter(course_id=course_id).order_by('-timestamp')
+        else:
+            return CourseFeedback.objects.filter(course_id=course_id, course__students=self.request.user).order_by('-timestamp')
+
 
     def perform_create(self, serializer):
         course = get_object_or_404(Course, pk=self.kwargs['course_id'])
