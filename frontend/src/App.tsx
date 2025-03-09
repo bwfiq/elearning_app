@@ -4,6 +4,7 @@ import './App.css';
 import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import UserHomePage from './UserHomePage';
 import Login from './Login';
+import Register from './Register'; // Import the Register component
 
 interface User {
     pk: number;
@@ -73,12 +74,16 @@ function App() {
                         <button onClick={logout}>Logout</button>
                     </div>
                 ) : (
-                    <Link to="/login">Login</Link>
+                    <div>
+                         <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
+                    </div>
+
                 )}
             </header>
             <Routes>
                 <Route path="/" element={isLoggedIn ? <UserList users={users} /> : <div>Please login to see the user list.</div>} />
                 <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+                <Route path="/register" element={<Register />} /> {/* Add the Register route */}
                 <Route path="/:username" element={<UserHomePage />} />
             </Routes>
         </div>
