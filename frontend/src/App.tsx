@@ -10,6 +10,8 @@ import CoursePage from './CoursePage'; // Import the CoursePage component
 import Navbar from './Navbar'; // Import the Navbar component
 import Chat from './Chat'; // Import the Chat component
 import Notifications from './Notifications';
+import CourseList from './CourseList';
+import UserList from './UserList';
 
 
 interface User {
@@ -62,6 +64,7 @@ function App() {
     const logout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('username');
         setIsLoggedIn(false);
         navigate('/');
     };
@@ -80,6 +83,8 @@ function App() {
                     <Route path="/register" element={<Register />} /> {/* Add the Register route */}
                     <Route path="/:username" element={<UserHomePage />} />
                     <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
+                    <Route path="/courses" element={isLoggedIn ? <CourseList /> : <div>Please login to see the course list.</div>} />
+                    <Route path="/users" element={isLoggedIn ? <UserList /> : <div>Please login to see the user list.</div>} />
                     <Route path="/chat" element={<Chat />} /> {/* Add the Chat route */}
 
                 </Routes>

@@ -1,5 +1,4 @@
 // frontend/src/types.ts
-
 export interface CourseMaterial {
     id: number;
     course: number;
