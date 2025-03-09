@@ -1,0 +1,39 @@
+name: Docker Build and Push to GHCR
+
+on:
+  push:
+    branches:
+      - prime
+  pull_request:
+    branches:
+      - prime
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: latest
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }} # This is your GitHub username/repo_name
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Login to GHCR
+        run: |
+          docker login $REGISTRY -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Backend Docker Image
+        run: |
+          docker build -t $REGISTRY/$IMAGE_NAME/elearning-backend:$IMAGE_TAG ./backend
+          docker push $REGISTRY/$IMAGE_NAME/elearning-backend:$IMAGE_TAG
+
+      - name: Build and Push Frontend Docker Image
+        run: |
+          docker build -t $REGISTRY/$IMAGE_NAME/elearning-frontend:$IMAGE_TAG ./frontend
+          docker push $REGISTRY/$IMAGE_NAME/elearning-frontend:$IMAGE_TAG
