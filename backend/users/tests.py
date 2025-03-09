@@ -1,3 +1,5 @@
+# backend/users/tests.py
+
 from django.test import TestCase
 from users.models import User, StatusUpdate
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -47,6 +49,21 @@ class UserAPIViewTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)  # User not found should return 404
         self.assertEqual(response.data, []) # Returns an empty list
+
+    def test_get_user_details_by_pk(self):
+        url = reverse('users_list') + f'?pk={self.user.pk}'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['username'], 'testuser')
+        self.assertEqual(response.data[0]['full_name'], 'Test User')
+        self.assertEqual(response.data[0]['email'], 'test@example.com')
+
+    def test_get_user_details_by_pk_not_found(self):
+        url = reverse('users_list') + '?pk=999'  # Non-existent pk
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, [])
 
 class StatusUpdateAPITest(TestCase):
     def setUp(self):

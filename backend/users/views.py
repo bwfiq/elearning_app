@@ -25,9 +25,18 @@ def register_user(request):
 def users_list(request):
     if request.method == "GET":
         username = request.query_params.get('username', None)
+        pk = request.query_params.get('pk', None)  # Add this line
+
         if username:
             try:
                 user = User.objects.get(username=username)
+                serializer = UserSerializer(user, context={"request": request})
+                return Response([serializer.data])  # Wrap in a list for consistency
+            except User.DoesNotExist:
+                return Response([], status=status.HTTP_404_NOT_FOUND)  # Return an empty list if user not found
+        elif pk:  # Add this block
+            try:
+                user = User.objects.get(pk=pk)
                 serializer = UserSerializer(user, context={"request": request})
                 return Response([serializer.data])  # Wrap in a list for consistency
             except User.DoesNotExist:
