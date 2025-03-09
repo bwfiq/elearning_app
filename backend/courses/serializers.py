@@ -6,3 +6,8 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = '__all__'
         read_only_fields = ('creator',)
+
+class CourseEnrollSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['students']

@@ -19,6 +19,14 @@ interface StatusUpdate {
     timestamp: string;
 }
 
+interface Course {
+    id: number;
+    name: string;
+    description: string;
+    creator: number;
+    students: number[];
+}
+
 const DEFAULT_PROFILE_PICTURE = 'https://www.pngfind.com/pngs/m/610-6104451_image-placeholder-png-user-profile-placeholder-image-png.png'; // URL to a default blank image
 
 function UserHomePage() {
@@ -32,10 +40,13 @@ function UserHomePage() {
     const [editedFullName, setEditedFullName] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [enrolledCourses, setEnrolledCourses] = useState<number[]>([]);
 
     // useRef to track if the component has mounted
     const isMounted = useRef(false);
-    const isStatusUpdatesMounted = useRef(false)
+    const isStatusUpdatesMounted = useRef(false);
+    const isCourseMounted = useRef(false);
 
     // Use useCallback to memoize fetchUser
     const fetchUser = useCallback(async () => {
@@ -66,6 +77,14 @@ function UserHomePage() {
         }
     }, [axiosInstance]); // Dependencies for useCallback
 
+    const fetchCourses = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get<Course[]>('/api/courses/');
+            setCourses(response.data);
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+        }
+    }, [axiosInstance]);
 
     useEffect(() => {
         if (!isMounted.current) {
@@ -81,6 +100,12 @@ function UserHomePage() {
         }
     }, [user, fetchStatusUpdates]);
 
+    useEffect(() => {
+        if (!isCourseMounted.current) {
+            fetchCourses();
+            isCourseMounted.current = true;
+        }
+    }, [fetchCourses]);
 
     const handleStatusSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -127,6 +152,20 @@ function UserHomePage() {
         }
     };
 
+    const handleEnrollCourse = async (courseId: number) => {
+        try {
+            const response = await axiosInstance.patch(`/api/courses/${courseId}/enroll/`);
+            if (response.data.status === 'enrolled') {
+                setEnrolledCourses([...enrolledCourses, courseId]);
+            } else {
+                setEnrolledCourses(enrolledCourses.filter(id => id !== courseId));
+            }
+            fetchCourses()
+        } catch (error) {
+            console.error('Error enrolling in course:', error);
+        }
+    };
+
     if (loading) {
         return <div>Loading user data...</div>;
     }
@@ -144,7 +183,7 @@ function UserHomePage() {
             <h1>User Home Page</h1>
             <p><strong>Username:</strong> {user.username}</p>
 
-             <img
+            <img
                 src={profilePictureUrl}
                 alt="Profile"
                 style={{ maxWidth: '200px', maxHeight: '200px' }}
@@ -196,7 +235,7 @@ function UserHomePage() {
                 ))}
             </ul>
 
-             {isOwnProfile && (
+            {isOwnProfile && (
                 <form onSubmit={handleStatusSubmit}>
                     <textarea
                         value={newStatusText}
@@ -206,6 +245,20 @@ function UserHomePage() {
                     <button type="submit">Post Status</button>
                 </form>
             )}
+
+            <h2>Courses</h2>
+            <ul>
+                {courses.map(course => (
+                    <li key={course.id}>
+                        {course.name}
+                        {isOwnProfile && (
+                            <button onClick={() => handleEnrollCourse(course.id)}>
+                                {course.students.includes(user.pk) ? 'Unenroll' : 'Enroll'}
+                            </button>
+                        )}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }

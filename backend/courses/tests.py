@@ -84,3 +84,28 @@ class CourseAPITests(TestCase):
         url = reverse('course-retrieve-update-destroy', kwargs={'pk': course.pk})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_enroll_course(self):
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        url = reverse('course-enroll', kwargs={'pk': course.pk})
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(course.students.count(), 1)
+        self.assertEqual(course.students.first(), self.user)
+        self.assertEqual(response.data['status'], 'enrolled')
+
+    def test_unenroll_course(self):
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        course.students.add(self.user)
+        url = reverse('course-enroll', kwargs={'pk': course.pk})
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(course.students.count(), 0)
+        self.assertEqual(response.data['status'], 'un enrolled')
+
+    def test_enroll_course_unauthenticated(self):
+        self.client.credentials()  # Remove authentication
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        url = reverse('course-enroll', kwargs={'pk': course.pk})
+        response = self.client.patch(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
