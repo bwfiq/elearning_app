@@ -61,6 +61,7 @@ This project is an eLearning web application developed as the final coursework f
     *   Axios
 *   **Other:**
     *   Redis (for Channels and Celery)
+    *   Nginx
 
 ## Setup Instructions
 
@@ -68,8 +69,10 @@ This project is an eLearning web application developed as the final coursework f
 
 *   Python 3.x installed
 *   Redis server installed and running
+*   Docker
+*   Docker Compose
 
-### Installation
+### Development Installation
 
 1.  **Clone the repository:**
 
@@ -89,7 +92,12 @@ This project is an eLearning web application developed as the final coursework f
 3.  **Install dependencies:**
 
     ```bash
+    cd backend
     pip install -r requirements.txt
+    cd ..
+    cd frontend
+    npm install
+    cd ..
     ```
 
 4.  **Apply migrations:**
@@ -114,8 +122,7 @@ This project is an eLearning web application developed as the final coursework f
 7.  **Start the React frontend in a separate process:**
 
     ```bash
-    cd ../frontend
-    npm install
+    cd frontend
     npm start
     ```
 ### Running Unit Tests
@@ -205,6 +212,127 @@ Relationships are established using ForeignKey and ManyToManyField relationships
 *   `/api/courses/<course_id>/feedback/`:
     *   `GET`: List course feedback.
     *   `POST`: Leave feedback for a course.
+
+## Docker Compose Deployment
+
+The following `docker-compose.yml` file can be used to deploy the application to a server.  It pulls pre-built images from `ghcr.io/bwfiq/elearning_app`.
+
+```yaml
+version: "3.9"
+
+services:
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  backend:
+    image: ghcr.io/bwfiq/elearning_app/elearning-backend:latest
+    restart: always
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}  # Replace with a secure key
+      DEBUG: "False"
+      APP_URL: elearning.bwfiq.com
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  celery:
+    image: ghcr.io/bwfiq/elearning_app/elearning-backend:latest
+    restart: always
+    command: celery -A backend worker -l info
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}  # Replace with a secure key
+    depends_on:
+      - redis
+      - backend
+    networks:
+      - app-network
+
+  frontend:
+    image: ghcr.io/bwfiq/elearning_app/elearning-frontend:latest
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+To deploy, save the above as `docker-compose.yml`, create a folder named `nginx` in the same directory, place the `nginx.conf` file (shown below) inside the `nginx` folder, replace `${DJANGO_SECRET_KEY}` with your actual Django secret key, and then run `docker-compose up -d`.
+
+**`nginx.conf` (Server Deployment):**
+
+```nginx
+upstream backend {
+    server backend:8000;
+}
+
+server {
+    listen 80;
+    server_name elearning.bwfiq.com;
+
+    location / {
+        proxy_pass http://frontend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+upstream frontend {
+  server frontend:80;
+}
+
+server {
+    listen 80;
+    server_name elearningapi.bwfiq.com;
+
+    location / {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /ws/ {
+        proxy_pass http://backend:8001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
 
 ## Notes
 
