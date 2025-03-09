@@ -3,13 +3,13 @@ name: Docker Build and Push to GHCR
 on:
   push:
     branches:
-      - '**'
+      - '**'  # This matches any branch
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      IMAGE_TAG: latest
+      IMAGE_TAG: ${{ github.sha }}
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }} # This is your GitHub username/repo_name
 
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }} # Explicitly specify the ref to checkout
 
       - name: Login to GHCR
         run: |
