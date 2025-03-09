@@ -24,3 +24,5 @@ profile_pics/
 **/media/**
 **/static/**
 dump.rdb
+
+.env
