@@ -7,6 +7,7 @@ from .models import Course, CourseMaterial, CourseFeedback
 from .serializers import CourseSerializer, CourseEnrollSerializer, CourseMaterialSerializer, CourseFeedbackSerializer, CourseRemoveStudentSerializer
 from users.models import User  # Import the User model
 from .tasks import send_enrollment_notification, send_unenrollment_notification, send_removal_notification, send_teacher_enrollment_notification
+from .filters import CourseFilter
 
 class IsTeacher(BasePermission):
     def has_permission(self, request, view):
@@ -26,6 +27,7 @@ class CourseListCreate(generics.ListCreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
+    filterset_class = CourseFilter
 
     def get_permissions(self):
         if self.request.method == 'POST':

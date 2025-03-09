@@ -1,13 +1,15 @@
-# users/views.py
+# backend/users/views.py
 from django.shortcuts import render
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend # Import DjangoFilterBackend
 
 from .models import User, StatusUpdate, Notification
 from .serializers import *
+from .filters import UserFilter # Import the UserFilter
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -72,8 +74,10 @@ def users_list(request):
             except User.DoesNotExist:
                 return Response([], status=status.HTTP_404_NOT_FOUND)  # Return an empty list if user not found
         else:
-            data = User.objects.all()
-            serializer = UserSerializer(data, context={"request": request}, many=True)
+            queryset = User.objects.all()
+            user_filter = UserFilter(request.GET, queryset=queryset) # Instantiate the filter
+            queryset = user_filter.qs
+            serializer = UserSerializer(queryset, context={"request": request}, many=True)
             return Response(serializer.data)
 
     elif request.method == "POST":
