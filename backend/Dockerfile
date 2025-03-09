@@ -6,15 +6,9 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Debugging step: list files in /app (formerly /backend)
-RUN ls -la /app
+COPY . .
 
-# Install dependencies
-COPY backend/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy project
-COPY backend /app
 
 # Collect static files
 RUN python manage.py collectstatic --noinput

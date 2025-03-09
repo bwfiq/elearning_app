@@ -28,9 +28,9 @@ jobs:
           docker login $REGISTRY -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Backend Docker Image
-        working-directory: ./
+        working-directory: ./backend
         run: |
-          docker build -t $REGISTRY/$IMAGE_NAME/elearning-backend:$IMAGE_TAG ./backend
+          docker build -t $REGISTRY/$IMAGE_NAME/elearning-backend:$IMAGE_TAG .
           docker push $REGISTRY/$IMAGE_NAME/elearning-backend:$IMAGE_TAG
 
       - name: Build and Push Frontend Docker Image
