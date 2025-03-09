@@ -1,11 +1,11 @@
 # backend/courses/views.py
-from rest_framework import generics, permissions
-from .models import Course, CourseMaterial, CourseFeedback
-from .serializers import CourseSerializer, CourseEnrollSerializer, CourseMaterialSerializer, CourseFeedbackSerializer
-from rest_framework.permissions import IsAuthenticated, BasePermission
-from rest_framework import status
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from django.shortcuts import get_object_or_404
+from .models import Course, CourseMaterial, CourseFeedback
+from .serializers import CourseSerializer, CourseEnrollSerializer, CourseMaterialSerializer, CourseFeedbackSerializer, CourseRemoveStudentSerializer
+from users.models import User  # Import the User model
 
 class IsTeacher(BasePermission):
     def has_permission(self, request, view):
@@ -152,3 +152,26 @@ class CourseFeedbackListCreate(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         course = get_object_or_404(Course, pk=self.kwargs['course_id'])
         serializer.save(course=course, user=self.request.user)
+
+class RemoveStudentFromCourse(generics.UpdateAPIView):
+    serializer_class = CourseRemoveStudentSerializer
+    permission_classes = [IsAuthenticated, IsCourseCreator]
+
+    def get_object(self):
+        return get_object_or_404(Course, pk=self.kwargs['pk'])
+
+    def update(self, request, *args, **kwargs):
+        course = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        student_id = serializer.validated_data['student_id']
+
+        try:
+            student = User.objects.get(pk=student_id)
+        except User.DoesNotExist:
+            return Response({'detail': 'Student not found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if course.remove_student(student):
+            return Response({'detail': 'Student removed from course.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'Student is not enrolled in this course.'}, status=status.HTTP_400_BAD_REQUEST)

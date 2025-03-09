@@ -186,6 +186,19 @@ const CoursePage: React.FC = () => {
         }
     };
 
+    const handleRemoveStudent = async (studentId: number) => {
+        try {
+            await axiosInstance.patch(`/api/courses/${courseId}/remove_student/`, {
+                student_id: studentId,
+            });
+            // Refresh student details after removing student
+             fetchCourse();
+            fetchStudentDetails(course ? course.students : []); // Refresh the student list
+        } catch (error) {
+            console.error('Error removing student:', error);
+        }
+    };
+
     if (loading) {
         return <div>Loading course details...</div>;
     }
@@ -205,7 +218,14 @@ const CoursePage: React.FC = () => {
             <h3>Students:</h3>
             <ul>
                 {studentDetails.map(student => (
-                    <li key={student.pk}>{student.full_name} ({student.username})</li>
+                    <li key={student.pk}>
+                        {student.full_name} ({student.username})
+                        {isCourseCreator && (
+                            <button onClick={() => handleRemoveStudent(student.pk)}>
+                                Remove
+                            </button>
+                        )}
+                    </li>
                 ))}
             </ul>
 

@@ -32,3 +32,6 @@ class CourseFeedbackSerializer(serializers.ModelSerializer):
         model = CourseFeedback
         fields = '__all__'
         read_only_fields = ('course', 'timestamp')
+
+class CourseRemoveStudentSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField(required=True)
