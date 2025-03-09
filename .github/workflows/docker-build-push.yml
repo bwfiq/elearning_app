@@ -3,10 +3,7 @@ name: Docker Build and Push to GHCR
 on:
   push:
     branches:
-      - prime
-  pull_request:
-    branches:
-      - prime
+      - '**'
 
 jobs:
   build-and-push:
