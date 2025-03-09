@@ -1,6 +1,6 @@
 # backend/courses/urls.py
 from django.urls import path
-from .views import CourseListCreate, CourseRetrieveUpdateDestroy, EnrollCourse, CourseMaterialListCreate, CourseMaterialRetrieveUpdateDestroy
+from .views import CourseListCreate, CourseRetrieveUpdateDestroy, EnrollCourse, CourseMaterialListCreate, CourseMaterialRetrieveUpdateDestroy, CourseFeedbackListCreate
 
 urlpatterns = [
     path('courses/', CourseListCreate.as_view(), name='course-list-create'),
@@ -8,4 +8,5 @@ urlpatterns = [
     path('courses/<int:pk>/enroll/', EnrollCourse.as_view(), name='course-enroll'),
     path('courses/<int:course_id>/materials/', CourseMaterialListCreate.as_view(), name='course-material-list-create'),
     path('courses/<int:course_id>/materials/<int:pk>/', CourseMaterialRetrieveUpdateDestroy.as_view(), name='course-material-retrieve-update-destroy'),
+    path('courses/<int:course_id>/feedback/', CourseFeedbackListCreate.as_view(), name='course-feedback-list-create'),
 ]

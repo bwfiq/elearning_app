@@ -1,4 +1,3 @@
-# backend/courses/models.py
 from django.db import models
 from django.conf import settings
 
@@ -23,3 +22,12 @@ class CourseMaterial(models.Model):
             return f"Text: {self.text_content[:20]}... ({self.course.name})"
         else:
             return f"File: {self.file.name} ({self.course.name})"
+
+class CourseFeedback(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='feedback')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback by {self.user.username} on {self.course.name}"

@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
-from .models import Course, CourseMaterial
+from .models import Course, CourseMaterial, CourseFeedback
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 User = get_user_model()
@@ -126,6 +126,7 @@ class CourseAPITests(TestCase):
 
     def test_get_course_materials(self):
         course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        course.students.add(self.user) # enroll user
         CourseMaterial.objects.create(course=course, text_content='Test material', uploaded_by=self.teacher)
         url = reverse('course-material-list-create', kwargs={'course_id': course.pk})
         response = self.client.get(url)
@@ -165,3 +166,25 @@ class CourseAPITests(TestCase):
         self.assertEqual(response.data[0]['uploaded_by'], self.teacher.id)
         self.assertIn('uploaded_by_username', response.data[0])
         self.assertEqual(response.data[0]['uploaded_by_username'], self.teacher.username)
+
+    def test_create_course_feedback(self):
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        course.students.add(self.user)  # Enroll the user in the course
+        url = reverse('course-feedback-list-create', kwargs={'course_id': course.pk})
+        data = {'text': 'This is a test feedback.'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CourseFeedback.objects.count(), 1)
+        self.assertEqual(CourseFeedback.objects.first().text, 'This is a test feedback.')
+        self.assertEqual(CourseFeedback.objects.first().user, self.user)
+        self.assertEqual(CourseFeedback.objects.first().course, course)
+
+    def test_get_course_feedback(self):
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        course.students.add(self.user)  # Enroll the user
+        CourseFeedback.objects.create(course=course, user=self.user, text='Test feedback')
+        url = reverse('course-feedback-list-create', kwargs={'course_id': course.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['text'], 'Test feedback')

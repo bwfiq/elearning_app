@@ -1,6 +1,6 @@
 # /backend/courses/serializers.py
 from rest_framework import serializers
-from .models import Course, CourseMaterial
+from .models import Course, CourseMaterial, CourseFeedback
 
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +23,10 @@ class CourseMaterialSerializer(serializers.ModelSerializer):
 
     def get_uploaded_by_username(self, obj):
         return obj.uploaded_by.username if obj.uploaded_by else None
+
+class CourseFeedbackSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')  # Display username instead of pk
+    class Meta:
+        model = CourseFeedback
+        fields = '__all__'
+        read_only_fields = ('course', 'timestamp')

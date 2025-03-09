@@ -1,7 +1,7 @@
 # backend/courses/views.py
 from rest_framework import generics, permissions
-from .models import Course, CourseMaterial
-from .serializers import CourseSerializer, CourseEnrollSerializer, CourseMaterialSerializer
+from .models import Course, CourseMaterial, CourseFeedback
+from .serializers import CourseSerializer, CourseEnrollSerializer, CourseMaterialSerializer, CourseFeedbackSerializer
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework import status
 from rest_framework.response import Response
@@ -126,3 +126,15 @@ class CourseMaterialRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView)
         if self.request.user != instance.uploaded_by and not self.request.user.is_staff:
             return Response(status=status.HTTP_403_FORBIDDEN)
         instance.delete()
+
+class CourseFeedbackListCreate(generics.ListCreateAPIView):
+    serializer_class = CourseFeedbackSerializer
+    permission_classes = [IsAuthenticated, IsEnrolled]
+
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        return CourseFeedback.objects.filter(course_id=course_id).order_by('-timestamp')
+
+    def perform_create(self, serializer):
+        course = get_object_or_404(Course, pk=self.kwargs['course_id'])
+        serializer.save(course=course, user=self.request.user)
