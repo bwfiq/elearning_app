@@ -1,3 +1,4 @@
+// frontend/src/UserHomePage.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import useAxios from './useAxios';
@@ -42,6 +43,10 @@ function UserHomePage() {
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [courses, setCourses] = useState<Course[]>([]);
     const [enrolledCourses, setEnrolledCourses] = useState<number[]>([]);
+
+    // New state variables for course creation
+    const [newCourseName, setNewCourseName] = useState('');
+    const [newCourseDescription, setNewCourseDescription] = useState('');
 
     // useRef to track if the component has mounted
     const isMounted = useRef(false);
@@ -166,6 +171,23 @@ function UserHomePage() {
         }
     };
 
+    // New function to handle course creation
+    const handleCreateCourse = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await axiosInstance.post('/api/courses/', {
+                name: newCourseName,
+                description: newCourseDescription,
+            });
+            // Refresh courses after creating
+            fetchCourses();
+            setNewCourseName('');
+            setNewCourseDescription('');
+        } catch (error) {
+            console.error('Error creating course:', error);
+        }
+    };
+
     if (loading) {
         return <div>Loading user data...</div>;
     }
@@ -259,6 +281,34 @@ function UserHomePage() {
                     </li>
                 ))}
             </ul>
+
+            {/* Conditionally render the course creation form */}
+            {user.is_teacher && (
+                <div>
+                    <h2>Create New Course</h2>
+                    <form onSubmit={handleCreateCourse}>
+                        <div>
+                            <label htmlFor="newCourseName">Course Name:</label>
+                            <input
+                                type="text"
+                                id="newCourseName"
+                                value={newCourseName}
+                                onChange={(e) => setNewCourseName(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="newCourseDescription">Course Description:</label>
+                            <textarea
+                                id="newCourseDescription"
+                                value={newCourseDescription}
+                                onChange={(e) => setNewCourseDescription(e.target.value)}
+                            />
+                        </div>
+                        <button type="submit">Create Course</button>
+                    </form>
+                </div>
+            )}
         </div>
     );
 }

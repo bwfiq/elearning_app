@@ -27,10 +27,16 @@ const CoursePage: React.FC = () => {
     const axiosInstance = useAxios();
     const [studentDetails, setStudentDetails] = useState<User[]>([]);
     const [courseMaterials, setCourseMaterials] = useState<CourseMaterial[]>([]);
+    const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+
+    // New state variables for course material creation
+    const [newMaterialTextContent, setNewMaterialTextContent] = useState('');
+    const [newMaterialFile, setNewMaterialFile] = useState<File | null>(null);
 
     // useRef to track if the component has mounted
     const isMounted = useRef(false);
     const isMaterialMounted = useRef(false);
+    const isUserMounted = useRef(false);
 
     // Use useCallback to memoize fetchCourse
     const fetchCourse = useCallback(async () => {
@@ -68,6 +74,21 @@ const CoursePage: React.FC = () => {
         }
     }, [courseId, axiosInstance]);
 
+    const fetchLoggedInUser = useCallback(async () => {
+        try {
+            const username = localStorage.getItem('username');
+            const response = await axiosInstance.get<User[]>(`/api/users/?username=${username}`);
+             if (Array.isArray(response.data) && response.data.length > 0) {
+                setLoggedInUser(response.data[0]);
+            } else {
+                setLoggedInUser(null);
+            }
+        } catch (error) {
+            console.error('Error fetching logged in user:', error);
+            setLoggedInUser(null);
+        }
+    }, [axiosInstance]);
+
     useEffect(() => {
         if (!isMounted.current) {
             if (courseId) {
@@ -90,6 +111,46 @@ const CoursePage: React.FC = () => {
         }
     }, [courseId, fetchCourseMaterials]);
 
+    useEffect(() => {
+        if (!isUserMounted.current) {
+            fetchLoggedInUser();
+            isUserMounted.current = true;
+        }
+    }, [fetchLoggedInUser]);
+
+    // New function to handle course material creation
+    const handleCreateCourseMaterial = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const formData = new FormData();
+            if (newMaterialTextContent) {
+                formData.append('text_content', newMaterialTextContent);
+            }
+            if (newMaterialFile) {
+                formData.append('file', newMaterialFile);
+            }
+
+            await axiosInstance.post(`/api/courses/${courseId}/materials/`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Refresh course materials after creating
+            fetchCourseMaterials();
+            setNewMaterialTextContent('');
+            setNewMaterialFile(null);
+        } catch (error) {
+            console.error('Error creating course material:', error);
+        }
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            setNewMaterialFile(event.target.files[0]);
+        }
+    };
+
     if (loading) {
         return <div>Loading course details...</div>;
     }
@@ -97,6 +158,8 @@ const CoursePage: React.FC = () => {
     if (!course) {
         return <div>Course not found.</div>;
     }
+
+    const isCourseCreator = loggedInUser && course.creator === loggedInUser.pk;
 
     return (
         <div>
@@ -119,6 +182,32 @@ const CoursePage: React.FC = () => {
                     </li>
                 ))}
             </ul>
+
+            {/* Conditionally render the course material creation form */}
+            {isCourseCreator && (
+                <div>
+                    <h2>Add New Course Material</h2>
+                    <form onSubmit={handleCreateCourseMaterial}>
+                        <div>
+                            <label htmlFor="newMaterialTextContent">Text Content:</label>
+                            <textarea
+                                id="newMaterialTextContent"
+                                value={newMaterialTextContent}
+                                onChange={(e) => setNewMaterialTextContent(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="newMaterialFile">File:</label>
+                            <input
+                                type="file"
+                                id="newMaterialFile"
+                                onChange={handleFileChange}
+                            />
+                        </div>
+                        <button type="submit">Add Material</button>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };
