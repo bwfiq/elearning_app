@@ -15,3 +15,12 @@ export interface CourseFeedback {
     text: string;
     timestamp: string;
 }
+
+export interface Course {
+    id: number;
+    name: string;
+    description: string;
+    creator: number;
+    students: number[];
+    creator_username: string; // Add creator_username
+}

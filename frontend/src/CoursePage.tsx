@@ -2,15 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import useAxios from './useAxios';
-import { CourseMaterial } from './types'; // Import the CourseMaterial interface
-
-interface Course {
-    id: number;
-    name: string;
-    description: string;
-    creator: number;
-    students: number[];
-}
+import { CourseMaterial, CourseFeedback, Course } from './types'; // Import the CourseMaterial interface
 
 interface User {
     pk: number;
@@ -18,13 +10,6 @@ interface User {
     full_name: string;
     email: string;
     registration_date: string;
-}
-
-interface CourseFeedback {
-    id: number;
-    user: string; // Username of the user who gave feedback
-    text: string;
-    timestamp: string;
 }
 
 const CoursePage: React.FC = () => {
@@ -216,6 +201,7 @@ const CoursePage: React.FC = () => {
         <div>
             <h2>{course.name}</h2>
             <p>{course.description}</p>
+            <p>Created by: {course.creator_username}</p> {/* Display creator's username */}
             <h3>Students:</h3>
             <ul>
                 {studentDetails.map(student => (

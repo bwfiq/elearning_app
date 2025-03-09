@@ -3,6 +3,8 @@ from rest_framework import serializers
 from .models import Course, CourseMaterial, CourseFeedback
 
 class CourseSerializer(serializers.ModelSerializer):
+    creator_username = serializers.ReadOnlyField(source='creator.username')
+    
     class Meta:
         model = Course
         fields = '__all__'
