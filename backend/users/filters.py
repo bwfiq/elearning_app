@@ -14,7 +14,11 @@ class UserFilter(django_filters.FilterSet):
         search_ratio = 60
         filtered_users = []
         for user in queryset:
-            match_ratio = fuzz.partial_token_sort_ratio(value, user.username)
-            if match_ratio >= search_ratio:
-                filtered_users.append(user.id)
+            fields_to_search = [user.username, user.full_name, user.email]
+            for field in fields_to_search:
+                if field:
+                    match_ratio = fuzz.partial_token_sort_ratio(value, field)
+                    if match_ratio >= search_ratio:
+                        filtered_users.append(user.id)
+                        break  # Avoid adding the same user multiple times
         return queryset.filter(id__in=filtered_users)
