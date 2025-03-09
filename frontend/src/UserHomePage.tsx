@@ -138,7 +138,7 @@ function UserHomePage() {
                     formData.append('profile_picture', profilePicture);
                 }
 
-                await axiosInstance.put(`/api/users/${user.pk}`, formData, {
+                await axiosInstance.put(`/api/users/${user.pk}/`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
