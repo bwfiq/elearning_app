@@ -103,7 +103,7 @@ server:
 cd backend
 python manage.py makemigrations
 python manage.py migrate
-python manage.py runserver 0:8000 # To listen on port 8000 on the LAN
+daphne backend.asqi:application
 
 # Running the frontend
 cd frontend

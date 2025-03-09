@@ -33,6 +33,9 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, logout }) => {
                         <Link to="/users" style={{ marginRight: '10px', textDecoration: 'none', color: 'black' }}>
                             Users
                         </Link>
+                        <Link to="/chat" style={{ marginRight: '10px', textDecoration: 'none', color: 'black' }}>
+                            Chat
+                        </Link>
                     </>
                 )}
             </div>

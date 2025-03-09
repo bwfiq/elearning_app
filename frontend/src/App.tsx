@@ -8,6 +8,8 @@ import Login from './Login';
 import Register from './Register'; // Import the Register component
 import CoursePage from './CoursePage'; // Import the CoursePage component
 import Navbar from './Navbar'; // Import the Navbar component
+import Chat from './Chat'; // Import the Chat component
+
 
 interface User {
     pk: number;
@@ -119,6 +121,8 @@ function App() {
                     <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
                     <Route path="/courses" element={isLoggedIn ? <CourseList courses={courses} loggedInUser={loggedInUser} /> : <div>Please login to see the course list.</div>} />
                     <Route path="/users" element={isLoggedIn ? <UserList users={users} loggedInUser={loggedInUser} /> : <div>Please login to see the user list.</div>} />
+                    <Route path="/chat" element={<Chat />} /> {/* Add the Chat route */}
+
                 </Routes>
             </div>
         </div>
