@@ -40,6 +40,11 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, logout }) => {
                 )}
             </div>
             <div>
+                 {isLoggedIn && username && (  // Add this section
+                    <span style={{ marginRight: '10px' }}>
+                        Logged in as: {username}
+                    </span>
+                )}
                 {isLoggedIn ? (
                     <button onClick={handleLogout} style={{ padding: '8px 12px', cursor: 'pointer' }}>
                         Logout
