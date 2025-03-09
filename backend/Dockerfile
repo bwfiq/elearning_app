@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.12-slim-buster
 
 WORKDIR /app
 
@@ -6,15 +6,26 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-COPY . .
+# Install system dependencies
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the backend code
+COPY . .
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
-# Expose port
+# Expose port 8000
 EXPOSE 8000
 
-# Start server
-CMD ["gunicorn", "backend.wsgi", "--bind", "0.0.0.0:8000"]
+# Start the application with gunicorn and daphne
+CMD gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 & \
+    daphne backend.asgi:application --bind 0.0.0.0:8001
