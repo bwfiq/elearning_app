@@ -20,6 +20,13 @@ interface User {
     registration_date: string;
 }
 
+interface CourseFeedback {
+    id: number;
+    user: string; // Username of the user who gave feedback
+    text: string;
+    timestamp: string;
+}
+
 const CoursePage: React.FC = () => {
     const { courseId } = useParams<{ courseId: string }>();
     const [course, setCourse] = useState<Course | null>(null);
@@ -34,10 +41,15 @@ const CoursePage: React.FC = () => {
     const [newMaterialTextContent, setNewMaterialTextContent] = useState('');
     const [newMaterialFile, setNewMaterialFile] = useState<File | null>(null);
 
+    // New state variable for feedback
+    const [newFeedbackText, setNewFeedbackText] = useState('');
+    const [courseFeedback, setCourseFeedback] = useState<CourseFeedback[]>([]);
+
     // useRef to track if the component has mounted
     const isMounted = useRef(false);
     const isMaterialMounted = useRef(false);
     const isUserMounted = useRef(false);
+    const isFeedbackMounted = useRef(false);
 
     // Use useCallback to memoize fetchCourse
     const fetchCourse = useCallback(async () => {
@@ -97,6 +109,15 @@ const CoursePage: React.FC = () => {
         }
     }, [axiosInstance]);
 
+    const fetchCourseFeedback = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get<CourseFeedback[]>(`/api/courses/${courseId}/feedback/`);
+            setCourseFeedback(response.data);
+        } catch (error) {
+            console.error('Error fetching course feedback:', error);
+        }
+    }, [courseId, axiosInstance]);
+
     useEffect(() => {
         if (!isMounted.current) {
             if (courseId) {
@@ -125,6 +146,13 @@ const CoursePage: React.FC = () => {
             isUserMounted.current = true;
         }
     }, [fetchLoggedInUser]);
+
+   useEffect(() => {
+        if (courseId && !isFeedbackMounted.current) {
+            fetchCourseFeedback();
+            isFeedbackMounted.current = true;
+        }
+    }, [courseId, fetchCourseFeedback]);
 
     // New function to handle course material creation
     const handleCreateCourseMaterial = async (e: React.FormEvent) => {
@@ -156,6 +184,20 @@ const CoursePage: React.FC = () => {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
             setNewMaterialFile(event.target.files[0]);
+        }
+    };
+
+     const handleFeedbackSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await axiosInstance.post(`/api/courses/${courseId}/feedback/`, {
+                text: newFeedbackText,
+            });
+            // Refresh feedback after posting
+            fetchCourseFeedback();
+            setNewFeedbackText('');
+        } catch (error) {
+            console.error('Error posting feedback:', error);
         }
     };
 
@@ -222,6 +264,27 @@ const CoursePage: React.FC = () => {
                     </form>
                 </div>
             )}
+
+            {/* Course Feedback Section */}
+            <h3>Course Feedback:</h3>
+            {isEnrolled && (
+                <form onSubmit={handleFeedbackSubmit}>
+                    <textarea
+                        value={newFeedbackText}
+                        onChange={(e) => setNewFeedbackText(e.target.value)}
+                        placeholder="Leave your feedback here..."
+                    />
+                    <button type="submit">Submit Feedback</button>
+                </form>
+            )}
+
+            <ul>
+                {courseFeedback.map(feedback => (
+                    <li key={feedback.id}>
+                        <strong>{feedback.user}:</strong> {feedback.text} - {new Date(feedback.timestamp).toLocaleString()}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };

@@ -8,3 +8,10 @@ export interface CourseMaterial {
     file: string | null;
     upload_date: string;
 }
+
+export interface CourseFeedback {
+    id: number;
+    user: string;
+    text: string;
+    timestamp: string;
+}
