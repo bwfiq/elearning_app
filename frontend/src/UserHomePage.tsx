@@ -1,4 +1,3 @@
-// frontend/src/UserHomePage.tsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import useAxios from './useAxios';
@@ -20,6 +19,8 @@ interface StatusUpdate {
     timestamp: string;
 }
 
+const DEFAULT_PROFILE_PICTURE = 'https://www.pngfind.com/pngs/m/610-6104451_image-placeholder-png-user-profile-placeholder-image-png.png'; // URL to a default blank image
+
 function UserHomePage() {
     const { username } = useParams<{ username: string }>();
     const [user, setUser] = useState<User | null>(null);
@@ -28,6 +29,9 @@ function UserHomePage() {
     const [statusUpdates, setStatusUpdates] = useState<StatusUpdate[]>([]);
     const [newStatusText, setNewStatusText] = useState('');
     const loggedInUsername = localStorage.getItem('username');
+    const [editedFullName, setEditedFullName] = useState('');
+    const [editedEmail, setEditedEmail] = useState('');
+    const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
     // useRef to track if the component has mounted
     const isMounted = useRef(false);
@@ -39,6 +43,8 @@ function UserHomePage() {
             const response = await axiosInstance.get<User>(`/api/users/?username=${username}`);
             if (Array.isArray(response.data) && response.data.length > 0) {
                 setUser(response.data[0]);
+                setEditedFullName(response.data[0].full_name);
+                setEditedEmail(response.data[0].email);
             } else {
                 setUser(null);
             }
@@ -90,6 +96,37 @@ function UserHomePage() {
         }
     };
 
+    const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files.length > 0) {
+            setProfilePicture(event.target.files[0]);
+        }
+    };
+
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (user) {
+            try {
+                const formData = new FormData();
+                formData.append('full_name', editedFullName);
+                formData.append('email', editedEmail);
+                if (profilePicture) {
+                    formData.append('profile_picture', profilePicture);
+                }
+
+                await axiosInstance.put(`/api/users/${user.pk}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                // Refresh user data after update
+                fetchUser();
+            } catch (error) {
+                console.error('Error updating profile:', error);
+            }
+        }
+    };
+
     if (loading) {
         return <div>Loading user data...</div>;
     }
@@ -100,17 +137,55 @@ function UserHomePage() {
 
     const isOwnProfile = loggedInUsername === user.username;
 
+    const profilePictureUrl = user.profile_picture ? `${user.profile_picture}` : DEFAULT_PROFILE_PICTURE;
+
     return (
         <div>
             <h1>User Home Page</h1>
             <p><strong>Username:</strong> {user.username}</p>
+
+             <img
+                src={profilePictureUrl}
+                alt="Profile"
+                style={{ maxWidth: '200px', maxHeight: '200px' }}
+            />
+
+            {isOwnProfile && (
+                <form onSubmit={handleUpdateProfile}>
+                    <div>
+                        <label htmlFor="fullName">Full Name:</label>
+                        <input
+                            type="text"
+                            id="fullName"
+                            value={editedFullName}
+                            onChange={(e) => setEditedFullName(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="email">Email:</label>
+                        <input
+                            type="email"
+                            id="email"
+                            value={editedEmail}
+                            onChange={(e) => setEditedEmail(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="profilePicture">Profile Picture:</label>
+                        <input
+                            type="file"
+                            id="profilePicture"
+                            onChange={handleProfilePictureChange}
+                        />
+                    </div>
+                    <button type="submit">Update Profile</button>
+                </form>
+            )}
+
             <p><strong>Full Name:</strong> {user.full_name}</p>
             <p><strong>Email:</strong> {user.email}</p>
             <p><strong>Registration Date:</strong> {user.registration_date}</p>
             <p><strong>Is Teacher:</strong> {user.is_teacher ? 'Yes' : 'No'}</p>
-            {user.profile_picture && (
-                <img src={`${axiosInstance.defaults.baseURL}${user.profile_picture}`} alt="Profile" style={{ maxWidth: '200px' }} />
-            )}
 
             <h2>Status Updates</h2>
             <ul>

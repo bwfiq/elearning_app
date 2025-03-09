@@ -1,3 +1,4 @@
+# backend/users/views.py
 from django.shortcuts import render
 
 from rest_framework.response import Response
@@ -58,11 +59,18 @@ def users_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == "PUT":
-        serializer = UserSerializer(user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Handle profile picture update
+        full_name = request.data.get('full_name')
+        email = request.data.get('email')
+        profile_picture = request.FILES.get('profile_picture')
+
+        user.full_name = full_name if full_name else user.full_name
+        user.email = email if email else user.email
+        if profile_picture:
+            user.profile_picture = profile_picture
+        user.save()
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK) # or HTTP_204_NO_CONTENT
 
     elif request.method == "DELETE":
         user.delete()
