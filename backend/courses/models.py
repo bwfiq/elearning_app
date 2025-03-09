@@ -1,3 +1,4 @@
+# backend/courses/models.py
 from django.db import models
 from django.conf import settings
 
@@ -9,3 +10,16 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+
+class CourseMaterial(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='materials')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    text_content = models.TextField(blank=True)
+    file = models.FileField(upload_to='course_materials/', blank=True, null=True)
+    upload_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.text_content:
+            return f"Text: {self.text_content[:20]}... ({self.course.name})"
+        else:
+            return f"File: {self.file.name} ({self.course.name})"

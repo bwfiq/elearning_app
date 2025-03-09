@@ -1,7 +1,7 @@
-# courses/views.py
+# backend/courses/views.py
 from rest_framework import generics, permissions
-from .models import Course
-from .serializers import CourseSerializer, CourseEnrollSerializer #Import CourseEnrollSerializer
+from .models import Course, CourseMaterial
+from .serializers import CourseSerializer, CourseEnrollSerializer, CourseMaterialSerializer
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework import status
 from rest_framework.response import Response
@@ -10,6 +10,10 @@ from django.shortcuts import get_object_or_404
 class IsTeacher(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_teacher
+
+class IsCourseCreator(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.creator == request.user
 
 class CourseListCreate(generics.ListCreateAPIView):
     queryset = Course.objects.all()
@@ -27,11 +31,11 @@ class CourseListCreate(generics.ListCreateAPIView):
 class CourseRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCourseCreator]
 
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            return [IsAuthenticated(), IsTeacher()]
+            return [IsAuthenticated(), IsTeacher(), IsCourseCreator()]
         return [IsAuthenticated()]
 
     def update(self, request, *args, **kwargs):
@@ -65,3 +69,54 @@ class EnrollCourse(generics.UpdateAPIView):
         else:
             course.students.add(user)
             return Response({'status': 'enrolled'}, status=status.HTTP_200_OK)
+
+class IsCourseCreatorOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow creators of a course to edit or delete it.
+    """
+    def has_permission(self, request, view):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Check if user is course creator
+        course_id = view.kwargs.get('course_id')
+        if course_id is None:
+            return False
+        course = get_object_or_404(Course, pk=course_id)
+        return course.creator == request.user
+
+class CourseMaterialListCreate(generics.ListCreateAPIView):
+    serializer_class = CourseMaterialSerializer
+    permission_classes = [IsAuthenticated, IsCourseCreatorOrReadOnly]
+
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        return CourseMaterial.objects.filter(course_id=course_id).order_by('-upload_date')
+
+    def perform_create(self, serializer):
+        course = get_object_or_404(Course, pk=self.kwargs['course_id'])
+        serializer.save(course=course, uploaded_by=self.request.user)
+
+class CourseMaterialRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CourseMaterialSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+        return CourseMaterial.objects.filter(course_id=course_id)
+
+    def get_object(self):
+         return get_object_or_404(CourseMaterial, pk=self.kwargs['pk'])
+
+    def perform_update(self, serializer):
+        material = self.get_object()
+        if self.request.user != material.uploaded_by and not self.request.user.is_staff:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user != instance.uploaded_by and not self.request.user.is_staff:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        instance.delete()

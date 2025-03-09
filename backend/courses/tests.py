@@ -1,9 +1,11 @@
+# backend/courses/tests.py
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
-from .models import Course
+from .models import Course, CourseMaterial
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 User = get_user_model()
 
@@ -109,3 +111,45 @@ class CourseAPITests(TestCase):
         url = reverse('course-enroll', kwargs={'pk': course.pk})
         response = self.client.patch(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_course_material(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.teacher_token)
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        url = reverse('course-material-list-create', kwargs={'course_id': course.pk})
+        data = {'text_content': 'Test material'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CourseMaterial.objects.count(), 1)
+        self.assertEqual(CourseMaterial.objects.first().text_content, 'Test material')
+        self.assertEqual(CourseMaterial.objects.first().course, course)
+        self.assertEqual(CourseMaterial.objects.first().uploaded_by, self.teacher)
+
+    def test_get_course_materials(self):
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        CourseMaterial.objects.create(course=course, text_content='Test material', uploaded_by=self.teacher)
+        url = reverse('course-material-list-create', kwargs={'course_id': course.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['text_content'], 'Test material')
+
+    def test_create_course_material_permission(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        url = reverse('course-material-list-create', kwargs={'course_id': course.pk})
+        data = {'text_content': 'Test material'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_upload_file_to_course(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.teacher_token)
+        course = Course.objects.create(name='Test Course', description='Test description', creator=self.teacher)
+        url = reverse('course-material-list-create', kwargs={'course_id': course.pk})
+        file_mock = SimpleUploadedFile("test.txt", b"file content", content_type="text/plain")
+        data = {'file': file_mock}
+        response = self.client.post(url, data, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CourseMaterial.objects.count(), 1)
+        self.assertEqual(CourseMaterial.objects.first().course, course)
+        self.assertEqual(CourseMaterial.objects.first().uploaded_by, self.teacher)
+        self.assertTrue(CourseMaterial.objects.first().file.name.startswith('course_materials/test'))
