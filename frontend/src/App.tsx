@@ -1,3 +1,4 @@
+// frontend/src/App.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
@@ -15,8 +16,17 @@ interface User {
     registration_date: string;
 }
 
+interface Course {
+    id: number;
+    name: string;
+    description: string;
+    creator: number;
+    students: number[];
+}
+
 function App() {
     const [users, setUsers] = useState<User[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'));
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -32,10 +42,8 @@ function App() {
                     },
                 });
                 setUsers(response.data);
-                setLoading(false);
             } catch (error: any) {
                 console.error('Error fetching users:', error);
-                setLoading(false);
                 if (error.response && error.response.status === 401) {
                     // Token might be invalid, force logout
                     logout();
@@ -43,8 +51,23 @@ function App() {
             }
         };
 
+        const fetchCourses = async () => {
+            try {
+                const response = await axios.get<Course[]>(`${apiUrl}/api/courses/`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                    },
+                });
+                setCourses(response.data);
+            } catch (error) {
+                console.error('Error fetching courses:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         if (isLoggedIn) {
-            fetchUsers();
+            Promise.all([fetchUsers(), fetchCourses()]);
         } else {
             setLoading(false);
         }
@@ -63,13 +86,13 @@ function App() {
     };
 
     if (loading) {
-        return <div>Loading users...</div>;
+        return <div>Loading users and courses...</div>;
     }
 
     return (
         <div className="App">
             <header>
-                <h1>User List</h1>
+                <h1>E-Learning App</h1>
                 {isLoggedIn ? (
                     <div>
                         <button onClick={logout}>Logout</button>
@@ -81,26 +104,43 @@ function App() {
 
                 )}
             </header>
-            <Routes>
-                <Route path="/" element={isLoggedIn ? <UserList users={users} /> : <div>Please login to see the user list.</div>} />
-                <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-                <Route path="/register" element={<Register />} /> {/* Add the Register route */}
-                <Route path="/:username" element={<UserHomePage />} />
-                <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
-            </Routes>
+            <div className="content">
+                <Routes>
+                    <Route path="/" element={isLoggedIn ? <HomePage users={users} courses={courses} /> : <div>Please login to see the user and course lists.</div>} />
+                    <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+                    <Route path="/register" element={<Register />} /> {/* Add the Register route */}
+                    <Route path="/:username" element={<UserHomePage />} />
+                    <Route path="/courses/:courseId" element={<CoursePage />} /> {/* Add the CoursePage route */}
+                </Routes>
+            </div>
         </div>
     );
 }
 
-function UserList({ users }: { users: User[] }) {
+function HomePage({ users, courses }: { users: User[]; courses: Course[] }) {
     return (
-        <ul>
-            {users.map(user => (
-                <li key={user.pk}>
-                    <Link to={`/${user.username}`}>{user.username}</Link> ({user.full_name}) - {user.email}
-                </li>
-            ))}
-        </ul>
+        <div className="home-page">
+            <div className="user-list">
+                <h2>Users</h2>
+                <ul>
+                    {users.map(user => (
+                        <li key={user.pk}>
+                            <Link to={`/${user.username}`}>{user.username}</Link> ({user.full_name}) - {user.email}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div className="course-list">
+                <h2>Courses</h2>
+                <ul>
+                    {courses.map(course => (
+                        <li key={course.id}>
+                            <Link to={`/courses/${course.id}`}>{course.name}</Link>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
     );
 }
 

@@ -1,13 +1,47 @@
+/* frontend/src/App.css */
 .App {
-  text-align: center;
-  font-family: sans-serif;
+    text-align: center;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+.App header {
+    background-color: #282c34;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
 }
 
-li {
-  margin: 5px 0;
+.App .content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.home-page {
+    display: flex;
+    justify-content: space-around; /* Distribute space evenly */
+    width: 100%;
+}
+
+.user-list, .course-list {
+    width: 45%; /* Take up approximately half the width */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.user-list h2, .course-list h2 {
+    margin-bottom: 10px;
+}
+
+.user-list ul, .course-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.user-list li, .course-list li {
+    margin-bottom: 5px;
 }
