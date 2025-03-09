@@ -24,6 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             // Store tokens in local storage
             localStorage.setItem('access_token', access);
             localStorage.setItem('refresh_token', refresh);
+            localStorage.setItem('username', username);
 
             // Call the onLoginSuccess callback
             onLoginSuccess();
