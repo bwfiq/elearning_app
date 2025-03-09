@@ -54,6 +54,9 @@ in
       pkgs.skopeo  # Interact with container registry
       pkgs.slirp4netns  # User-mode networking for unprivileged namespaces
       pkgs.fuse-overlayfs  # CoW for images, much faster than default vfs
+
+      # chat
+      pkgs.redis
     ];
 
     # Run this command, only after creating the virtual environment
