@@ -15,6 +15,12 @@ class IsCourseCreator(BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.creator == request.user
 
+class IsEnrolled(BasePermission):
+    def has_permission(self, request, view):
+        course_id = view.kwargs['course_id']
+        course = get_object_or_404(Course, pk=course_id)
+        return request.user in course.students.all() or request.user == course.creator
+
 class CourseListCreate(generics.ListCreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
@@ -89,7 +95,7 @@ class IsCourseCreatorOrReadOnly(permissions.BasePermission):
 
 class CourseMaterialListCreate(generics.ListCreateAPIView):
     serializer_class = CourseMaterialSerializer
-    permission_classes = [IsAuthenticated, IsCourseCreatorOrReadOnly]
+    permission_classes = [IsAuthenticated, IsEnrolled, IsCourseCreatorOrReadOnly]
 
     def get_queryset(self):
         course_id = self.kwargs['course_id']
@@ -101,7 +107,7 @@ class CourseMaterialListCreate(generics.ListCreateAPIView):
 
 class CourseMaterialRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseMaterialSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsEnrolled]
 
     def get_queryset(self):
         course_id = self.kwargs['course_id']

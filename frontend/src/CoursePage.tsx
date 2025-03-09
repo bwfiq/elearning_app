@@ -28,6 +28,7 @@ const CoursePage: React.FC = () => {
     const [studentDetails, setStudentDetails] = useState<User[]>([]);
     const [courseMaterials, setCourseMaterials] = useState<CourseMaterial[]>([]);
     const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+    const [enrollmentMessage, setEnrollmentMessage] = useState<string | null>(null);
 
     // New state variables for course material creation
     const [newMaterialTextContent, setNewMaterialTextContent] = useState('');
@@ -69,8 +70,15 @@ const CoursePage: React.FC = () => {
         try {
             const response = await axiosInstance.get<CourseMaterial[]>(`/api/courses/${courseId}/materials/`);
             setCourseMaterials(response.data);
-        } catch (error) {
+            setEnrollmentMessage(null); // Clear any previous enrollment messages
+        } catch (error: any) {
             console.error('Error fetching course materials:', error);
+            if (error.response && error.response.status === 403) {
+                setEnrollmentMessage("You must be enrolled in this course to view materials.");
+            } else {
+                setEnrollmentMessage("Failed to load course materials.");
+            }
+            setCourseMaterials([]); // Clear materials on error
         }
     }, [courseId, axiosInstance]);
 
@@ -160,6 +168,7 @@ const CoursePage: React.FC = () => {
     }
 
     const isCourseCreator = loggedInUser && course.creator === loggedInUser.pk;
+    const isEnrolled = loggedInUser && course.students.includes(loggedInUser.pk);
 
     return (
         <div>
@@ -173,15 +182,20 @@ const CoursePage: React.FC = () => {
             </ul>
 
             <h3>Course Materials:</h3>
-            <ul>
-                {courseMaterials.map(material => (
-                    <li key={material.id}>
-                        {material.text_content && <p>{material.text_content}</p>}
-                        {material.file && <a href={material.file} target="_blank" rel="noopener noreferrer">View File</a>}
-                        <p>Uploaded on: {new Date(material.upload_date).toLocaleString()}</p>
-                    </li>
-                ))}
-            </ul>
+            {enrollmentMessage && <p style={{ color: 'red' }}>{enrollmentMessage}</p>}
+            {isEnrolled || isCourseCreator ? (
+                <ul>
+                    {courseMaterials.map(material => (
+                        <li key={material.id}>
+                            {material.text_content && <p>{material.text_content}</p>}
+                            {material.file && <a href={material.file} target="_blank" rel="noopener noreferrer">View File</a>}
+                            <p>Uploaded on: {new Date(material.upload_date).toLocaleString()}</p>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p>Enroll in this course to see the materials.</p>
+            )}
 
             {/* Conditionally render the course material creation form */}
             {isCourseCreator && (
