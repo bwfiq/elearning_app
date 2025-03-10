@@ -1,4 +1,3 @@
-```markdown
 # E-Learning Platform Application Report
 
 **Author:** Mohammad Rafiq
@@ -784,3 +783,4 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     command: sh -c "python manage.py wait_for_db && python manage.py migrate && python manage
+```
