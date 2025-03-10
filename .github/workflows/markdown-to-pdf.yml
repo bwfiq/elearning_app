@@ -14,15 +14,11 @@ jobs:
         with:
           fetch-depth: 0 # Required to get the full commit history for the commit hash
 
-      - name: Install Pandoc and LaTeX
-        run: |
-          sudo apt-get update
-          sudo apt-get install pandoc
-
-      - name: Convert Markdown to PDF
-        id: convert_md_to_pdf
-        run: |
-          pandoc report.md -o report.pdf
+      - name: Generate PDF
+        uses: BaileyJM02/markdown-to-pdf@v1.2.0
+        with:
+          input_path: docs/report.md
+          output_dir: docs/report.pdf
 
       - name: Get Commit Hash
         id: get_commit_hash
@@ -50,6 +46,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-between-jobs
-          asset_path: report.pdf
+          asset_path: docs/report.pdf
           asset_name: report-${{ steps.get_commit_hash.outputs.COMMIT_HASH }}.pdf
           asset_content_type: application/pdf
