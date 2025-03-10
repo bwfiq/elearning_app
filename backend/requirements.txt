@@ -11,3 +11,4 @@ gunicorn==23.0.0
 pillow==11.1.0
 redis==5.2.1
 whitenoise==6.9.0
+faker==37.0.0
