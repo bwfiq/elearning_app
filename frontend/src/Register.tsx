@@ -17,7 +17,7 @@ const Register = () => {
         event.preventDefault();
 
         try {
-            await axios.post(`${apiUrl}/api/register/`, {
+            await axios.post(`${apiUrl}/api/users/register/`, {
                 username: username,
                 password: password,
                 full_name: fullName,
