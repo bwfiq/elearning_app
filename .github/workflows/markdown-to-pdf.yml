@@ -42,3 +42,4 @@ jobs:
           draft: false
           prerelease: false
           files: docs/report.pdf
+          tag_name: ${{ env.GITDATE }}
