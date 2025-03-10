@@ -221,8 +221,7 @@ function UserHomePage() {
     }
 
     const isOwnProfile = loggedInUsername === user.username;
-
-    const profilePictureUrl = user.profile_picture ? `${user.profile_picture}` : DEFAULT_PROFILE_PICTURE;
+    const profilePictureUrl = user.profile_picture ? `${apiUrl}${user.profile_picture}` : DEFAULT_PROFILE_PICTURE;
 
     return (
         <div>
