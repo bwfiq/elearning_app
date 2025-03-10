@@ -29,4 +29,4 @@ EXPOSE 8001
 
 # Start the application with gunicorn and daphne
 CMD gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 & \
-    daphne backend.asgi:application --bind 0.0.0.0:8001
+    daphne backend.asgi:application -b 0.0.0.0 -p 8001
