@@ -26,6 +26,7 @@ hyperlink==21.0.0
 idna==3.10
 incremental==24.7.2
 kombu==5.4.2
+Levenshtein==0.27.1
 msgpack==1.1.0
 packaging==24.2
 pillow==11.1.0
@@ -38,7 +39,9 @@ PyJWT==2.9.0
 pyOpenSSL==25.0.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
+python-Levenshtein==0.27.1
 PyYAML==6.0.2
+RapidFuzz==3.12.2
 redis==5.2.1
 service-identity==24.2.0
 setuptools==75.9.1
