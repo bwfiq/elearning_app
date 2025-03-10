@@ -1,6 +1,6 @@
 # backend/urls.py
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from users import views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
