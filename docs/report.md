@@ -3,64 +3,6 @@
 **Author:** Mohammad Rafiq
 **Date:** 10 March 2025
 
-## Table of Contents
-
-1.  [Introduction](#introduction)
-    *   [Project Overview](#project-overview)
-    *   [Requirements](#requirements)
-
-2.  [Application Design and Architecture](#application-design-and-architecture)
-    *   [Overall Architecture](#overall-architecture)
-    *   [Directory Structure](#directory-structure)
-    *   [Frontend Design (React)](#frontend-design-react)
-        *   [Component Structure](#component-structure)
-        *   [State Management](#state-management)
-        *   [Axios Integration](#axios-integration)
-    *   [Backend Design (Django)](#backend-design-django)
-        *   [Model Design](#model-design)
-        *   [View Design](#view-design)
-        *   [Serializer Design](#serializer-design)
-        *   [URL Design](#url-design)
-        *   [Authentication and Permissions](#authentication-and-permissions)
-        *   [Celery Integration](#celery-integration)
-        *   [Channels and Websockets for Chat](#channels-and-websockets-for-chat)
-        *   [Django Filters](#django-filters)
-    *   [Database Design](#database-design)
-    *   [Dockerization](#dockerization)
-        *   [Dockerfile Configuration](#dockerfile-configuration)
-        *   [Docker Compose](#docker-compose)
-        *   [GitHub Actions for CI/CD](#github-actions-for-cicd)
-    *   [Nginx Configuration](#nginx-configuration)
-
-3.  [Requirement Fulfilment (R1-R5)](#requirement-fulfilment-r1-r5)
-    *   [R1: User Authentication and Authorisation](#r1-user-authentication-and-authorisation)
-    *   [R2: Course Management](#r2-course-management)
-    *   [R3: Course Material Upload and Access](#r3-course-material-upload-and-access)
-    *   [R4: User Profile Management](#r4-user-profile-management)
-    *   [R5: Real-time Chat Functionality](#r5-real-time-chat-functionality)
-
-4.  [Code Organisation and Logic](#code-organisation-and-logic)
-    *   [Frontend Logic](#frontend-logic)
-    *   [Backend Logic](#backend-logic)
-
-5.  [Critical Evaluation](#critical-evaluation)
-    *   [Design Strengths](#design-strengths)
-    *   [Areas for Improvement](#areas-for-improvement)
-    *   [Future Enhancements](#future-enhancements)
-
-6.  [Testing](#testing)
-    *   [Running Unit Tests](#running-unit-tests)
-
-7.  [Installation and Execution](#installation-and-execution)
-    *   [Package List and Versions](#package-list-and-versions)
-    *   [Development Environment](#development-environment)
-    *   [Installation Instructions](#installation-instructions)
-    *   [Login Credentials](#login-credentials)
-
-8.  [Deployment (Bonus)](#deployment-bonus)
-
-9.  [Conclusion](#conclusion)
-
 ---
 
 ## 1. Introduction
@@ -626,7 +568,8 @@ This allows users to send and receive messages in real-time.
 
 #### Django Filters
 
-Django Filters is used for applying search filters to the list of courses and users using the fuzzywuzzy library.
+Django Filters is used for applying search filters to the list of courses and users using the fuzzywuzzy library. This library enables the use of fuzzy search, and fuzzy search is implemented across all fields of all data models so users can search for any term and find a relevant user or course.
+
 For courses:
 ```python
 # backend/courses/filters.py
@@ -686,7 +629,7 @@ This ensures that users can find content through user and course names.
 
 ### Database Design
 
-The application uses SQLite as its database. In a production environment, it would be preferable to use PostgreSQL. The database stores information about:
+The application uses SQLite as its database. The database stores information about:
 
 *   Users (username, full name, email, password, profile picture, teacher status)
 *   Courses (creator, name, description, enrolled students)
@@ -741,44 +684,88 @@ Frontend Dockerfile:
 The multi-stage Dockerfile builds the React app in a Node.js environment and serves it with Nginx. Building the Node project in a first build stage and only exporting the generated static files to the production stage, along with choosing the lightest possible web server base image (utilising httpd) led to a size reduction from 1GB to ~1MB in the final image.
 
 ```dockerfile
-FROM node:16-alpine AS builder
+# Stage 1: Prepare the Node.js build environment
+FROM node:20-alpine AS builder
 
 WORKDIR /app
-COPY frontend/package*.json ./
+
+COPY package*.json ./
 RUN npm install
-COPY frontend/. ./
-RUN npm run build
 
-FROM nginx:alpine
+COPY . /app
+RUN npm run build --production
 
-COPY --from=builder /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Stage 2: Copy over build and run the app
+FROM lipanski/docker-static-website:latest
+
+# Copy necessary files from the builder stage
+COPY --from=builder /app/build .
+
+CMD ["/busybox-httpd", "-f", "-v", "-p", "3000"]
 ```
 
 #### Docker Compose
 
-Docker Compose is used to define and manage multi-container Docker applications. The `docker-compose.yml` file defines the services for the frontend, backend, and database.
+Docker Compose is used to define and manage the Docker containers. The `docker-compose.yml` file defines the services for the frontend, backend, redis cache, and the celery worker.
 
 ```yaml
-version: "3.8"
-
 services:
-  db:
-    image: postgres:13
-    volumes:
-      - db_data:/var/lib/postgresql/data/
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-
   redis:
-    image: redis:latest
+    container_name: elearning_app_redis
+    image: "redis:latest"
+    networks:
+      - bridge
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: sh -c "python manage.py wait_for_db && python manage.py migrate && python manage
+    container_name: elearning_app_backend
+    image: ghcr.io/bwfiq/elearning_app/elearning-backend
+    restart: always
+    environment:
+      REDIS_HOST: elearning_app_redis
+      REDIS_PORT: 6379
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: "False"
+    depends_on:
+      - redis
+    networks:
+      - bridge
+
+  celery:
+    container_name: elearning_app_celery
+    image: ghcr.io/bwfiq/elearning_app/elearning-backend
+    restart: always
+    command: celery -A backend worker -l info
+    environment:
+      REDIS_HOST: elearning_app_redis
+      REDIS_PORT: 6379
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}  # Replace with a secure key
+    depends_on:
+      - redis
+      - backend
+    networks:
+      - bridge
+
+  frontend:
+    container_name: elearning_app_frontend
+    image: ghcr.io/bwfiq/elearning_app/elearning-frontend
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - bridge
+
+networks:
+  bridge:
+    driver: bridge
 ```
+
+---
+
+The source code for this app can be found at https://github.com/bwfiq/elearning_app. The site has been deployed using the Docker Compose template and the nginx configuration file on a Debian server at https://elearning.bwfiq.com, with the API accessible at https://elearningapi.bwfiq.com. The Django admin credentials are:
+
+* username: admin
+* password: admin
+
+---
+
+I learned a lot about writing a full-stack application in the process of developing this assignment, and particularly learned a lot about what makes frontend frameworks tick and how they might connect to backend APIs. Containerising the application and figuring out how to connect the services was also a large hurdle in deploying the app, though one that came with a lot of learning opportunities. All in all, I am satisfied with the final product, and would love the opportunity to tackle a project like this again now that I learned what to do and what not to do, and can do it better.
