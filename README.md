@@ -342,3 +342,8 @@ In this project, I initially faced challenges in integrating Django Channels for
 
 *   **Operating System:** Linux (NixOS 25.05)
 *   **Python Version:** 3.12
+
+## Acknowledgements
+
+*   https://github.com/mikesparr/tutorial-react-docker for teaching me how to pass environment variables into React apps when using them inside a Docker container
+*   https://blog.logrocket.com/using-react-django-create-app-tutorial/ for providing most of the startup code for this full stack app
