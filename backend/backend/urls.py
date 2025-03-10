@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import (
 )
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve  # Import the serve functio
 
 urlpatterns = [
     path("admin/", admin.site.urls),
