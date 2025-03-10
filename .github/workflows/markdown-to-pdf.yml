@@ -17,17 +17,12 @@ jobs:
       - name: Install Pandoc and LaTeX
         run: |
           sudo apt-get update
-          sudo apt-get install pandoc texlive-xetex texlive-fonts-recommended texlive-generic-recommended
+          sudo apt-get install pandoc
 
       - name: Convert Markdown to PDF
         id: convert_md_to_pdf
         run: |
-          pandoc report.md -o report.pdf --from markdown --template=eisvogel  --pdf-engine=xelatex
-          # The --template=eisvogel option uses the Eisvogel LaTeX template (optional but recommended for better formatting).
-          # You may need to install Eisvogel template manually if you haven't already.
-          # Download Eisvogel.latex from https://github.com/Wandmalfarbe/pandoc-latex-template and place it in your repository.
-
-          # Alternatively, if Eisvogel is not used remove --template=eisvogel  and remove --pdf-engine=xelatex and use default pdflatex
+          pandoc report.md -o report.pdf
 
       - name: Get Commit Hash
         id: get_commit_hash
