@@ -1,30 +1,17 @@
-FROM python:3.12
-
-WORKDIR /app
+FROM python:3.12-alpine
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Install system dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE 1 \
+    PYTHONUNBUFFERED 1
 
 # Copy requirements file
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /
+RUN pip install --no-cache-dir -r /requirements.txt
 
 # Copy the backend code
+WORKDIR /app
 COPY . .
-
-# Run migrations
-RUN python manage.py migrate --noinput
-
-# Collect static files
-RUN python manage.py collectstatic --noinput
+RUN python manage.py migrate --noinput && python manage.py collectstatic --noinput
 
 # Expose port 8000 and 8001
 EXPOSE 8000
