@@ -12,6 +12,7 @@ import Chat from './Chat'; // Import the Chat component
 import Notifications from './Notifications';
 import CourseList from './CourseList';
 import UserList from './UserList';
+import Config from './Config';
 
 
 interface User {
@@ -26,7 +27,7 @@ interface User {
 function App() {
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'));
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiUrl = Config.apiUrl;
     const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
 
     const navigate = useNavigate();
