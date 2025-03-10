@@ -87,7 +87,7 @@ The application follows a three-tier architecture:
 
 1.  **Frontend (Presentation Tier):** Built using React, responsible for presenting the user interface and handling user interactions.
 2.  **Backend (Application Tier):** Built using Django, responsible for handling business logic, data processing, and API endpoints.
-3.  **Database (Data Tier):** Uses SQLite as the database, responsible for storing application data. In a production environment, PostgreSQL would be preferred.
+3.  **Database (Data Tier):** Uses SQLite as the database, responsible for storing application data.
 
 This separation of concerns promotes modularity, making the application easier to maintain and scale.
 
@@ -247,7 +247,7 @@ React's built-in state management is used for handling component-specific data. 
 
 #### Axios Integration
 
-The frontend uses Axios, a promise-based HTTP client, to communicate with the Django backend. The `useAxios.tsx` file likely contains a custom hook for making API requests.
+The frontend uses Axios, a promise-based HTTP client, to communicate with the Django backend. The `useAxios.tsx` file contains a custom hook for making API requests.
 
 ```typescript
 // frontend/src/useAxios.tsx
@@ -255,13 +255,11 @@ import axios from 'axios';
 
 const useAxios = () => {
   const api = axios.create({
-    baseURL: 'http://localhost:8000/api', // Example base URL
+    baseURL: 'http://localhost:8000/api', 
     headers: {
       'Content-Type': 'application/json',
     },
   });
-
-  // You could add interceptors here for authentication tokens, etc.
 
   return api;
 };
@@ -708,7 +706,7 @@ Docker is used to containerise the application, making it easier to deploy and r
 
 The project includes `Dockerfile`s for both the frontend and backend. These files define the steps to build Docker images for each part of the application.
 
-Backend Dockerfile:
+Backend Dockerfile: Care was taken to remove all unneeded requirements from the virtual environment, culling those that were not needed, as well as choosing to use the lightest possible base image. This resulted in a size reduction of the final Docker image from 1GB to 200MB.
 
 ```dockerfile
 FROM python:3.12-alpine
@@ -740,7 +738,7 @@ CMD gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 
 
 Frontend Dockerfile:
 
-The multi-stage Dockerfile builds the React app in a Node.js environment and serves it with Nginx:
+The multi-stage Dockerfile builds the React app in a Node.js environment and serves it with Nginx. Building the Node project in a first build stage and only exporting the generated static files to the production stage, along with choosing the lightest possible web server base image (utilising httpd) led to a size reduction from 1GB to ~1MB in the final image.
 
 ```dockerfile
 FROM node:16-alpine AS builder
