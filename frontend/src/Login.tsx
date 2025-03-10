@@ -9,7 +9,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const apiUrl = process.env.API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();

@@ -26,7 +26,7 @@ interface User {
 function App() {
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'));
-    const apiUrl = process.env.API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
     const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
 
     const navigate = useNavigate();
