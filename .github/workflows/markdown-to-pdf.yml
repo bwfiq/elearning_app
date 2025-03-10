@@ -25,27 +25,13 @@ jobs:
         run: |
           echo "COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload PDF to Release
+        id: upload_release_asset
+        uses: softprops/action-gh-release@v2.2.1
         with:
-          tag_name: ${{ steps.get_commit_hash.outputs.COMMIT_HASH }}
-          release_name: Release ${{ steps.get_commit_hash.outputs.COMMIT_HASH }}
           body: |
             Release based on commit: ${{ steps.get_commit_hash.outputs.COMMIT_HASH }}
             Includes a PDF version of the `report.md` file.
           draft: false
           prerelease: false
-
-      - name: Upload PDF to Release
-        id: upload_release_asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-between-jobs
-          asset_path: docs/report.pdf
-          asset_name: report-${{ steps.get_commit_hash.outputs.COMMIT_HASH }}.pdf
-          asset_content_type: application/pdf
+          files: docs/report.pdf
