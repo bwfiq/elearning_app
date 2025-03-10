@@ -1,12 +1,13 @@
 // frontend/src/Chat.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import Config from './Config';
 
 const Chat: React.FC = () => {
     const [messages, setMessages] = useState<{ username: string; message: string; }[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const username = localStorage.getItem('username') || 'Anonymous';
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiUrl = Config.apiUrl;
     const wsURL = apiUrl.replace('http', 'ws') + '/ws/chat/';
 
     const chatBoxRef = useRef<HTMLDivElement>(null); // Ref for the chat box

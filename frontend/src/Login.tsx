@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Config from './Config';
 
 interface LoginProps {
     onLoginSuccess: () => void;
@@ -9,7 +10,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiUrl = Config.apiUrl;
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();

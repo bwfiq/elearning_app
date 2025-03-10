@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Config from './Config';
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -11,7 +12,7 @@ const Register = () => {
     const [isTeacher, setIsTeacher] = useState(false); // New state for teacher status
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const apiUrl = Config.apiUrl;
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
