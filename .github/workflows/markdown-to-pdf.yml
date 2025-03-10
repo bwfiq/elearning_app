@@ -1,0 +1,60 @@
+name: Generate Release with PDF Report
+
+on:
+  push:
+    branches:
+      - '**'  # Trigger on push to any branch
+
+jobs:
+  generate_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Required to get the full commit history for the commit hash
+
+      - name: Install Pandoc and LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install pandoc texlive-xetex texlive-fonts-recommended texlive-generic-recommended
+
+      - name: Convert Markdown to PDF
+        id: convert_md_to_pdf
+        run: |
+          pandoc report.md -o report.pdf --from markdown --template=eisvogel  --pdf-engine=xelatex
+          # The --template=eisvogel option uses the Eisvogel LaTeX template (optional but recommended for better formatting).
+          # You may need to install Eisvogel template manually if you haven't already.
+          # Download Eisvogel.latex from https://github.com/Wandmalfarbe/pandoc-latex-template and place it in your repository.
+
+          # Alternatively, if Eisvogel is not used remove --template=eisvogel  and remove --pdf-engine=xelatex and use default pdflatex
+
+      - name: Get Commit Hash
+        id: get_commit_hash
+        run: |
+          echo "COMMIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_commit_hash.outputs.COMMIT_HASH }}
+          release_name: Release ${{ steps.get_commit_hash.outputs.COMMIT_HASH }}
+          body: |
+            Release based on commit: ${{ steps.get_commit_hash.outputs.COMMIT_HASH }}
+            Includes a PDF version of the `report.md` file.
+          draft: false
+          prerelease: false
+
+      - name: Upload PDF to Release
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-between-jobs
+          asset_path: report.pdf
+          asset_name: report-${{ steps.get_commit_hash.outputs.COMMIT_HASH }}.pdf
+          asset_content_type: application/pdf

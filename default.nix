@@ -58,6 +58,10 @@ in
 
       # chat
       pkgs.redis
+
+      # report
+      pkgs.pandoc
+      pkgs.tectonic
     ];
 
     # Run this command, only after creating the virtual environment
