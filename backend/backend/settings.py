@@ -162,6 +162,9 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 CELERY_BROKER_URL = f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:{os.environ.get('REDIS_PORT', 6379)}/0"
 CELERY_RESULT_BACKEND = f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:{os.environ.get('REDIS_PORT', 6379)}/0"
 CELERY_ACCEPT_CONTENT = ['application/json']
@@ -170,17 +173,3 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'  # Or your desired timezone
 
 CSRF_TRUSTED_ORIGINS = [os.environ.get('APP_URL', 'http://localhost:3000')]
-
-# Minio settings
-MINIO_STORAGE_ENDPOINT = os.environ.get('MINIO_STORAGE_ENDPOINT', 'localhost:9000')
-MINIO_STORAGE_ACCESS_KEY = os.environ.get('MINIO_STORAGE_ACCESS_KEY', 'minioadmin')
-MINIO_STORAGE_SECRET_KEY = os.environ.get('MINIO_STORAGE_SECRET_KEY', 'minioadmin')
-MINIO_STORAGE_USE_HTTPS = False  # Set to True if using HTTPS
-MINIO_STORAGE_BUCKET_NAME = os.environ.get('MINIO_STORAGE_BUCKET_NAME', 'media')
-MINIO_STORAGE_AUTO_CREATE_BUCKET = True
-MINIO_STORAGE_FILE_STORAGE = 'django_minio_storage.storage.MinioMediaStorage'
-MINIO_STORAGE_STATIC_FILES_STORAGE = 'django_minio_storage.storage.MinioStaticFilesStorage'
-
-MEDIA_URL = f'http://{MINIO_STORAGE_ENDPOINT}/{MINIO_STORAGE_BUCKET_NAME}/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
