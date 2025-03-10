@@ -6,20 +6,13 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Stage 2: Runtime environment (includes building with env vars)
-FROM node:20-alpine
+COPY . /app
+RUN npm run build --production
 
-WORKDIR /app
+# Stage 2: Copy over build and run the app
+FROM lipanski/docker-static-website:latest
 
 # Copy necessary files from the builder stage
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY . .
-RUN npm install -g serve
+COPY --from=builder /app/build .
 
-# Make the init script executable
-RUN chmod +x ./init
-
-EXPOSE 80
-
-CMD ["./init"]
+CMD ["/busybox-httpd", "-f", "-v", "-p", "3000"]
