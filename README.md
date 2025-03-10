@@ -215,15 +215,15 @@ This project is an eLearning web application built with Django (backend) and Rea
     pip install -r requirements.txt
     python manage.py makemigrations
     python manage.py migrate
-    cd ..
+    python manage.py runserver
     ```
 
-3.  **Frontend Setup:**
+3.  **Frontend Setup (in a separate shell):**
 
     ```bash
     cd frontend
     npm install
-    cd ..
+    npm start
     ```
 
 4.  **Environment Variables:** Create a `.envrc` file (or set environment variables manually) with the following:
@@ -234,6 +234,12 @@ This project is an eLearning web application built with Django (backend) and Rea
     export REDIS_PORT=6379
     export APP_URL='http://localhost:3000' # URL of your React App
     ```
+5. Ensure `redis-server` is running, and run `celery` for asynchronous notifications:
+
+   ```bash
+   cd backend
+   celery -A backend worker -l info
+   ```   
 
 ## Database
 
