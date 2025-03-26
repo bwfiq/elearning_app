@@ -437,7 +437,7 @@ services:
 
   backend:
     container_name: elearning_app_backend
-    image: ghcr.io/bwfiq/elearning_app/elearning-backend
+    image: ghcr.io/rrvsh/elearning_app/elearning-backend
     restart: always
     environment:
       REDIS_HOST: elearning_app_redis
@@ -451,7 +451,7 @@ services:
 
   celery:
     container_name: elearning_app_celery
-    image: ghcr.io/bwfiq/elearning_app/elearning-backend
+    image: ghcr.io/rrvsh/elearning_app/elearning-backend
     restart: always
     command: celery -A backend worker -l info
     environment:
@@ -466,7 +466,7 @@ services:
 
   frontend:
     container_name: elearning_app_frontend
-    image: ghcr.io/bwfiq/elearning_app/elearning-frontend
+    image: ghcr.io/rrvsh/elearning_app/elearning-frontend
     restart: always
     depends_on:
       - backend
